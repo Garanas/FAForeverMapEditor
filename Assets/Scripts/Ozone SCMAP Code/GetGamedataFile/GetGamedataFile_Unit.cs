@@ -214,7 +214,7 @@ public partial struct GetGamedataFile
 			return CreateEmptyUnit(LocalPath);
 		}
 
-		BluePrintString = BluePrintString.Replace("UnitBlueprint {", "UnitBlueprint = {");
+		BluePrintString = BluePrintString.Replace("UnitBlueprint", "UnitBlueprint =");
 
 		string[] PathSplit = LocalPath.Split('/');
 		GameObject NewUnit = new GameObject(PathSplit[PathSplit.Length - 1].Replace(".bp", ""));
