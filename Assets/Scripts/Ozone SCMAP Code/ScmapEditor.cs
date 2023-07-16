@@ -598,7 +598,6 @@ public partial class ScmapEditor : MonoBehaviour
 			}
 		}
 
-		Debug.Log(AlbedoSize);
 		Texture2DArray NormalArray = new Texture2DArray(AlbedoSize, AlbedoSize, 8, TextureFormat.RGBA32, true);
 
 		for (int i = 0; i < 8; i++)
