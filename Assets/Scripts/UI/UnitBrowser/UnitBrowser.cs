@@ -288,16 +288,16 @@ namespace FAF.MapEditor
 					FactionCorrect = UnitDB.FactionName == "UEF";
 					break;
 				case 2:
-					FactionCorrect = UnitDB.FactionName == "Aeon";
+					FactionCorrect = UnitDB.FactionName == "AEON";
 					break;
 				case 3:
-					FactionCorrect = UnitDB.FactionName == "Cybran";
+					FactionCorrect = UnitDB.FactionName == "CYBRAN";
 					break;
 				case 4:
-					FactionCorrect = UnitDB.FactionName == "Seraphim";
+					FactionCorrect = UnitDB.FactionName == "SERAPHIM";
 					break;
 				case 5:
-					FactionCorrect = UnitDB.FactionName != "UEF" && UnitDB.FactionName != "Aeon" && UnitDB.FactionName != "Cybran" && UnitDB.FactionName != "Seraphim";
+					FactionCorrect = UnitDB.FactionName == "OTHER";
 					break;
 			}
 

@@ -77,13 +77,6 @@ public partial struct GetGamedataFile
 					}
 				}
 
-
-				CurrentValue = GeneralTab.RawGet("FactionName");
-				if (CurrentValue != null)
-					FactionName = CurrentValue.ToString();
-				else
-					FactionName = DefaultFaction;
-
 				CurrentValue = GeneralTab.RawGet("Icon");
 				if (CurrentValue != null)
 					Icon = CurrentValue.ToString();
@@ -99,7 +92,6 @@ public partial struct GetGamedataFile
 			}
 			else
 			{
-				FactionName = DefaultFaction;
 				Icon = "land";
 				Category = "";
 				Name = CodeName;
@@ -118,18 +110,25 @@ public partial struct GetGamedataFile
 				Categories = LuaParser.Read.GetTableValues(CategoriesTab);
 
 				TechLevel = "TECH1";
+				FactionName = "OTHER";
 
 				for (int i = 0; i < Categories.Length; i++)
 				{
-					if(Categories[i].StartsWith("TECH"))
-					{
-						TechLevel = Categories[i];
-						break;
+					string category = Categories[i];
+
+					// search for faction
+					if (category == "UEF" || category == "AEON" || category == "SERAPHIM" || category == "CYBRAN") {
+						FactionName = category;
 					}
-					else if(Categories[i] == "EXPERIMENTAL")
+
+					// search for tech
+					if(category.StartsWith("TECH"))
+					{
+						TechLevel = category;
+					}
+					else if(category == "EXPERIMENTAL")
 					{
 						TechLevel = "TECH4";
-						break;
 					}
 				}
 			}
@@ -137,6 +136,7 @@ public partial struct GetGamedataFile
 			{
 				Categories = new string[] {"TECH1"};
 				TechLevel = "TECH1";
+				FactionName = "OTHER";
 			}
 			CategoriesHash = new HashSet<string>(Categories);
 		}
@@ -164,7 +164,7 @@ public partial struct GetGamedataFile
 			return new UnitDB(LocalPath);
 		}
 
-		BluePrintString = BluePrintString.Replace("UnitBlueprint {", "UnitBlueprint = {");
+		BluePrintString = BluePrintString.Replace("UnitBlueprint", "UnitBlueprint =");
 
 
 		//Fix LUA
