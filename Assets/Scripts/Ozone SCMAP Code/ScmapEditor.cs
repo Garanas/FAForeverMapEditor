@@ -598,6 +598,7 @@ public partial class ScmapEditor : MonoBehaviour
 			}
 		}
 
+		Debug.Log(AlbedoSize);
 		Texture2DArray NormalArray = new Texture2DArray(AlbedoSize, AlbedoSize, 8, TextureFormat.RGBA32, true);
 
 		for (int i = 0; i < 8; i++)
@@ -611,7 +612,7 @@ public partial class ScmapEditor : MonoBehaviour
 			if (Textures[i + 1].Normal == null)
 				continue;
 
-			if (Textures[i + 1].Normal.width != 1024 || Textures[i + 1].Normal.height != 1024)
+			if (Textures[i + 1].Normal.width != AlbedoSize || Textures[i + 1].Normal.height != AlbedoSize)
 			{
 				Textures[i + 1].Normal = TextureScale.Bilinear(Textures[i + 1].Normal, AlbedoSize, AlbedoSize);
 			}
