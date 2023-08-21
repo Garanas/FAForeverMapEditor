@@ -52,7 +52,7 @@ namespace EditMap
 
 			if (!Directory.Exists(Path.GetDirectoryName(path)))
 			{
-				Debug.LogError("Cant find Waves folder");
+				Debug.LogError("Cant find Waves folder at: " + path);
 				return;
 			}
 			if (!File.Exists(path))

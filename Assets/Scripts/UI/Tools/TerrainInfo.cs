@@ -140,7 +140,7 @@ namespace EditMap
 
 			if (!Directory.Exists(StructurePath))
 			{
-				Debug.LogError("Cant find brush folder");
+				Debug.LogError("Cant find brush folder at: " + StructurePath);
 				return;
 			}
 

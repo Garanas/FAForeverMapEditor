@@ -9,7 +9,7 @@ using System.Collections.Generic;
 public class EditorVersion : MonoBehaviour
 {
 
-	public const string EditorBuildVersion = "v0.704-Alpha";
+	public const string EditorBuildVersion = "v0.707";
 
 #if PRERELEASE
 	// Prerelease
@@ -24,7 +24,7 @@ public class EditorVersion : MonoBehaviour
 
 	public static string LatestTag = "";
 	public static string FoundUrl;
-	public bool SearchForNew = false;
+	public bool SearchForNew = true;
 
 	string TagString
 	{
@@ -39,12 +39,13 @@ public class EditorVersion : MonoBehaviour
 
 	void Start()
 	{
+		Debug.Log("Start!");
 		GetComponent<Text>().text = EditorBuildVersion + TagString;
 		if(SearchForNew)
 			StartCoroutine(FindLatest());
 	}
 
-	public string url = "https://github.com/ozonexo3/FAForeverMapEditor/releases/latest";
+	public string url = "https://github.com/Garanas/FAForeverMapEditor/releases/latest";
 	IEnumerator FindLatest()
 	{
 
@@ -64,9 +65,11 @@ public class EditorVersion : MonoBehaviour
 			}*/
 			string[] Tags = www.url.Replace("\\", "/").Split("/".ToCharArray());
 
+
 			if (Tags.Length > 0)
 			{
 				LatestTag = Tags[Tags.Length - 1];
+				Debug.Log(LatestTag);
 				FoundUrl = www.url;
 
 				double Latest = System.Math.Round(BuildFloat(LatestTag), 3);

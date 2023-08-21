@@ -536,6 +536,7 @@ namespace EditMap
 				BrushMini.SetValue(Min);
 				BrushMax.SetValue(Max);
 
+
 				if (TargetValue.value < 0)
 					TargetValue.SetValue(0);
 				else if (TargetValue.value > 1)

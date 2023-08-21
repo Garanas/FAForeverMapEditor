@@ -175,9 +175,18 @@ public class Map
 		Width = _Width;
 		Height = _Height;
 
-		PreviewTex = new Texture2D(256, 256, TextureFormat.RGBA32, false);
-		TexturemapTex = new Texture2D(Width, Height, TextureFormat.RGBA32, false);
-		TexturemapTex2 = new Texture2D(Width, Height, TextureFormat.RGBA32, false);
+		int multiplier = 8;
+		if (Width >= 1024 || Height >= 1024) {
+			multiplier = 4;
+		}
+
+		if (Width >= 2048 || Height >= 2048) {
+			multiplier = 2;
+		}
+
+		PreviewTex = new Texture2D(512, 512, TextureFormat.RGBA32, false);
+		TexturemapTex = new Texture2D(multiplier * Width, multiplier * Height, TextureFormat.RGBA32, false);
+		TexturemapTex2 = new Texture2D(multiplier * Width, multiplier * Height, TextureFormat.RGBA32, false);
 		NormalmapTex = new Texture2D(Width, Height, TextureFormat.DXT5, false);
 		WatermapTex = new Texture2D(Width, Height, TextureFormat.DXT5, false);
 		UncompressedWatermapTex = new Texture2D(WatermapTex.width, WatermapTex.height, TextureFormat.RGBA32, false);
@@ -185,7 +194,7 @@ public class Map
 		WaterDataTexture = new Texture2D(Width, Height, TextureFormat.RGB24, false);
 
 		Color SplatTextureColor = new Color(0, 0, 0, 0);
-		Color[] Pixels = new Color[Width * Height];
+		Color[] Pixels = new Color[multiplier * multiplier * Width * Height];
 		for (int i = 0; i < Pixels.Length; i++)
 			Pixels[i] = SplatTextureColor;
 
@@ -195,7 +204,7 @@ public class Map
 		TexturemapTex.Apply();
 		TexturemapTex2.Apply();
 
-
+		Pixels = new Color[Width * Height];
 		Color Bump = new Color(0, 0, 1, 1);
 		for (int i = 0; i < Pixels.Length; i++)
 			Pixels[i] = Bump;
