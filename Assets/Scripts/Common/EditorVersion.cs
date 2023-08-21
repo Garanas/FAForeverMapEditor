@@ -9,7 +9,7 @@ using System.Collections.Generic;
 public class EditorVersion : MonoBehaviour
 {
 
-	public const string EditorBuildVersion = "v0.707";
+	public const string EditorBuildVersion = "v0.708";
 
 #if PRERELEASE
 	// Prerelease
