@@ -175,7 +175,7 @@ public class Map
 		Width = _Width;
 		Height = _Height;
 
-		int multiplier = 2;
+		int multiplier = 1;
 		if (Width >= 1000 || Height >= 1000) {
 			multiplier = 1;
 		}
