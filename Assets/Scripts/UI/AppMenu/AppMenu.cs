@@ -165,23 +165,23 @@ public partial class AppMenu : MonoBehaviour
 			case "Ruler":
 				Ruler.Toggle(RulerToggle.isOn);
 				break;
+			case "Discord":
+				Application.OpenURL("https://discord.gg/mXahVSKGVb");
+				break;
 			case "Forum":
-				Application.OpenURL("http://forums.faforever.com/viewtopic.php?f=45&t=10647");
+				Application.OpenURL("https://forum.faforever.com/category/12/mapping");
 				break;
 			case "Wiki":
-				Application.OpenURL("https://wiki.faforever.com/index.php?title=FA_Forever_Map_Editor");
+				Application.OpenURL("https://wiki.faforever.com/en/Development/Mapping");
 				break;
-			case "UnitDb":
-				Application.OpenURL("http://direct.faforever.com/faf/unitsDB/");
+			case "Gaea":
+				Application.OpenURL("https://wiki.faforever.com/en/Development/Mapping/Gaea");
 				break;
 			case "EditorLog":
 				ShowEditorLog();
 				break;
-			case "Donate":
-				Application.OpenURL("https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=LUYMTPBDH5V4E&lc=GB&item_name=FAF%20Map%20Editor&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted");
-				break;
 			case "Shortcuts":
-				Application.OpenURL("https://wiki.faforever.com/index.php?title=FA_Forever_Map_Editor#Useful_shortuts");
+				Application.OpenURL("https://wiki.faforever.com/en/Development/Mapping/FA-Forever-Map-Editor#useful-shortcuts");
 				break;
 			case "PlayMap":
 				if (MapLuaParser.IsMapLoaded)

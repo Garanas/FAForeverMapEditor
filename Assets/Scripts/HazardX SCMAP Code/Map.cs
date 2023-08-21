@@ -175,13 +175,13 @@ public class Map
 		Width = _Width;
 		Height = _Height;
 
-		int multiplier = 8;
-		if (Width >= 1024 || Height >= 1024) {
-			multiplier = 4;
+		int multiplier = 4;
+		if (Width >= 1000 || Height >= 1000) {
+			multiplier = 2;
 		}
 
-		if (Width >= 2048 || Height >= 2048) {
-			multiplier = 2;
+		if (Width >= 2000 || Height >= 2000) {
+			multiplier = 1;
 		}
 
 		PreviewTex = new Texture2D(512, 512, TextureFormat.RGBA32, false);
