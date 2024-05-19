@@ -1,16 +1,22 @@
-name: Actions
+name: Build artifact
+
+# Relevant sources:
+# - https://game.ci/
+
 
 on: [workflow_dispatch]
 
 jobs:
   build:
-    name: Automating Map Editor Build
-    runs-on: windows-latest # Uses Windows as the runner due to the ubutny runner created Shader Issuses
+    name: Build
+    # We use the WIndows runner because there are compile errors in the Ubuntu runner
+    runs-on: windows-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           lfs: true
+          
       - name: Cache Libary
         uses: actions/cache@v3
         with:
@@ -18,7 +24,8 @@ jobs:
           key: Library-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**', 'Structure/**') }}
           restore-keys: |
             Library- 
-      - name: Build project # Source https://game.ci/
+
+      - name: Build project 
         uses: game-ci/unity-builder@v4 
         env:
           # The unity email and password can be found in the 'Game assets' vault of:
@@ -39,10 +46,12 @@ jobs:
           buildName: FAForeverMapEditor
           versioning: Tag
           unityVersion: 2022.3.26f1
+
       - name: Add the Structure Directory to the Built Project
         shell: bash
         run: |
             mv -f ./Structure build/StandaloneWindows64/FAForeverMapEditor_Data/
+
       - name: Upload Build
         uses: actions/upload-artifact@v4
         with:
