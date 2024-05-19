@@ -1,11 +1,11 @@
-name: Actions 😎
+name: Actions
 
-on: [push, pull_request]
+on: [workflow_dispatch]
 
 jobs:
   build:
     name: Automating Map Editor Build
-    runs-on: windows-latest
+    runs-on: windows-latest # Uses Windows as the runner due to the ubutny runner created Shader Issuses
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -30,12 +30,12 @@ jobs:
           buildName: FAForeverMapEditor
           versioning: Tag
           unityVersion: 2022.3.26f1
-      - name: Add Structure file
+      - name: Add the Structure Directory to the Built Project
         shell: bash
         run: |
             mv -f ./Structure build/StandaloneWindows64/FAForeverMapEditor_Data/
       - name: Upload Build
         uses: actions/upload-artifact@v4
         with:
-          name: Build
+          name: FAForever Map Editor
           path: build
