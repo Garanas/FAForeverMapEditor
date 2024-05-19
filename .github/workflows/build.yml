@@ -1,0 +1,41 @@
+name: Actions 😎
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: Automating Map Editor Build
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+      - name: Cache Libary
+        uses: actions/cache@v3
+        with:
+          path: Library
+          key: Library-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**', 'Structure/**') }}
+          restore-keys: |
+            Library- 
+      - name: Build project
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          customImage: 'unityci/editor:windows-2022.3.26f1-windows-il2cpp-3'
+          targetPlatform: StandaloneWindows64
+          buildName: FAForeverMapEditor
+          versioning: Tag
+          unityVersion: 2022.3.26f1
+      - name: Add Structure file
+        shell: bash
+        run: |
+            mv -f ./Structure build/StandaloneWindows64/FAForeverMapEditor_Data/
+      - name: Upload Build
+        uses: actions/upload-artifact@v4
+        with:
+          name: Build
+          path: build
