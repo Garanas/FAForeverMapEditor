@@ -79,6 +79,7 @@ public partial struct GetGamedataFile
 
 				StoredPrefab = NewProp;
 
+				Debug.Log(BP);
 				if (BP.LODs.Length > 0)
 				{
 					if (BP.LODs[0].Mesh)
@@ -251,9 +252,10 @@ public partial struct GetGamedataFile
 		}
 
 		BluePrintString = BluePrintString.Replace("PropBlueprint {", "PropBlueprint = {");
+        BluePrintString = BluePrintString.Replace("PropBlueprint{", "PropBlueprint = {");
 
-		// *** Parse Blueprint
-		ToReturn.BP = new PropBluePrint();
+        // *** Parse Blueprint
+        ToReturn.BP = new PropBluePrint();
 		// Create Lua
 		Lua BP = new Lua();
 		BP.LoadCLRPackage();
