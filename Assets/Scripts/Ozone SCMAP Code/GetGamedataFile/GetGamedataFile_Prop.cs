@@ -79,7 +79,6 @@ public partial struct GetGamedataFile
 
 				StoredPrefab = NewProp;
 
-				Debug.Log(BP);
 				if (BP.LODs.Length > 0)
 				{
 					if (BP.LODs[0].Mesh)
