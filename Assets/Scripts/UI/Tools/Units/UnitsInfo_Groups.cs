@@ -7,7 +7,7 @@ using FAF.MapEditor;
 
 namespace EditMap
 {
-	public partial class UnitsInfo : MonoBehaviour
+	public partial class UnitsInfo
 	{
 
 

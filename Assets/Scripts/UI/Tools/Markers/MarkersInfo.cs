@@ -1,69 +1,39 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine.UI;
+﻿using Selection;
 
 namespace EditMap
 {
-	public class MarkersInfo : MonoBehaviour
+	public class MarkersInfo : ToolPage
 	{
-
 		public static MarkersInfo Current;
 
-		private void Awake()
-		{
-			Current = this;
-		}
-
-		public GameObject[] PageSelection;
-		public GameObject[] Page;
 		public ChainsList ChainsInfo;
 		public MarkersList MarkerList;
-
+		
+		protected override void Awake()
+		{
+			base.Awake();
+			Current = this;
+		}
+		
 		void OnEnable()
 		{
 			ChangePage(CurrentPage);
-
 		}
 
 		void OnDisable()
 		{
-			Selection.SelectionManager.Current.ClearAffectedGameObjects();
+			SelectionManager.Current.ClearAffectedGameObjects();
 			MarkerList.Clean();
 		}
 
-		public int GetCurrentPage()
-		{
-			return CurrentPage;
-		}
-
-		public int PreviousCurrentPage()
-		{
-			return PreviousPage;
-		}
-
-		int PreviousPage = 0;
-		int CurrentPage = 0;
 		public static bool MarkerPageChange = false;
-		public void ChangePage(int PageId)
+		public override bool ChangePage(int PageId)
 		{
-			if (CurrentPage == PageId && Page[CurrentPage].activeSelf && PageSelection[CurrentPage].activeSelf)
-				return;
 			MarkerPageChange = true;
-
-			PreviousPage = CurrentPage;
-			CurrentPage = PageId;
-
-			for(int i = 0; i < Page.Length; i++)
-			{
-				Page[i].SetActive(false);
-				PageSelection[i].SetActive(false);
-			}
-
-			Page[CurrentPage].SetActive(true);
-			PageSelection[CurrentPage].SetActive(true);
+			bool pageChanged = base.ChangePage(PageId);
 			MarkerPageChange = false;
+			
+			return pageChanged;
 		}
-
 	}
 }

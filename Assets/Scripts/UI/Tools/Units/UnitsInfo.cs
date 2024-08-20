@@ -1,20 +1,15 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using Selection;
 using Ozone.UI;
 
 namespace EditMap
 {
-	public partial class UnitsInfo : MonoBehaviour
+	public partial class UnitsInfo : ToolPage
 	{
 		public static UnitsInfo Current;
 
-		[Header("Pages")]
-		public GameObject[] PageSelected;
-		public GameObject[] Page;
-
+		[Header("Units Info")]
 		[Header("UI")]
 		public Transform Pivot;
 		public GameObject GroupPrefab;
@@ -123,29 +118,19 @@ namespace EditMap
 
 		}
 
-		int CurrentPage = 0;
-		public static bool TerrainPageChange = false;
-		public void ChangePage(int PageId)
+		public static bool UnitsPageChange = false;
+		public override bool ChangePage(int PageId)
 		{
-			if (CurrentPage == PageId && Page[CurrentPage].activeSelf && PageSelected[CurrentPage].activeSelf)
-				return;
-			TerrainPageChange = true;
+			UnitsPageChange = true;
+			bool pageChanged = base.ChangePage(PageId);
 
-			ForceExitCreate();
-
-			//PreviousPage = CurrentPage;
-			CurrentPage = PageId;
-
-			for (int i = 0; i < Page.Length; i++)
+			if (pageChanged)
 			{
-				Page[i].SetActive(false);
-				PageSelected[i].SetActive(false);
+				ForceExitCreate();
 			}
-
-
-			Page[CurrentPage].SetActive(true);
-			PageSelected[CurrentPage].SetActive(true);
-			TerrainPageChange = false;
+			
+			UnitsPageChange = false;
+			return pageChanged;
 		}
 
 		public static void GetTotalUnitsReclaim(out float Mass, out float Energy)

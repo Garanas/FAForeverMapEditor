@@ -70,7 +70,7 @@ namespace UndoHistory
 			if (UndoToMarkerMenu)
 			{
 				Undo.Current.EditMenu.ChangeCategory(6);
-				PropsInfo.Current.ShowTab(0);
+				PropsInfo.Current.ChangePage(0);
 			}
 
 		}

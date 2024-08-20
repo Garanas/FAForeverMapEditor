@@ -48,14 +48,13 @@ public class BrushGenerator : MonoBehaviour
 		Current = this;
 	}
 
-	#region LoadBrushesh
-
+	#region LoadBrushes
+	
 	/// <summary>
 	/// Loads all brush textures from structure brush folder
 	/// </summary>
 	public void LoadBrushes()
 	{
-
 		if (!(Brushes == null || Brushes.Count == 0))
 			return;
 
@@ -265,25 +264,28 @@ public class BrushGenerator : MonoBehaviour
 
 	static int LastFallofId = -1;
 	static float LastRotation = -1;
-	public static void SetFallof(int FallofId, float Rotation)
+	public static void SetFalloff(int FallofId, float Rotation)
 	{
 		if(LastFallofId == FallofId && LastRotation == Rotation)
 		{
 			return;
 		}
-
-		BrushGenerator.Current.Brushes[FallofId].wrapMode = TextureWrapMode.Clamp;
-		BrushGenerator.Current.Brushes[FallofId].mipMapBias = -1f;
-		BrushGenerator.Current.Brushes[FallofId].filterMode = FilterMode.Bilinear;
-		BrushGenerator.Current.Brushes[FallofId].anisoLevel = 2;
+		
+		// This function only runs if there are no loaded brushes. I'm calling it here to guarantee brushes exist.
+		Current.LoadBrushes();
+		
+		Current.Brushes[FallofId].wrapMode = TextureWrapMode.Clamp;
+		Current.Brushes[FallofId].mipMapBias = -1f;
+		Current.Brushes[FallofId].filterMode = FilterMode.Bilinear;
+		Current.Brushes[FallofId].anisoLevel = 2;
 
 		if (Rotation == 0)
 		{
-			BrushGenerator.Current.RotatedBrush = BrushGenerator.Current.Brushes[FallofId];
+			Current.RotatedBrush = Current.Brushes[FallofId];
 		}
 		else
 		{
-			BrushGenerator.Current.RotatedBrush = BrushGenerator.rotateTexture(BrushGenerator.Current.Brushes[FallofId], Rotation);
+			Current.RotatedBrush = rotateTexture(Current.Brushes[FallofId], Rotation);
 		}
 
 		LastFallofId = FallofId;

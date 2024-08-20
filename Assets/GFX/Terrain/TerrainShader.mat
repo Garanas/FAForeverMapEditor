@@ -2,20 +2,28 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!21 &2100000
 Material:
-  serializedVersion: 6
+  serializedVersion: 8
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: TerrainShader
   m_Shader: {fileID: 4800000, guid: 07332981e20e66d40a9ee102d13a9be8, type: 3}
-  m_ShaderKeywords: _AREA_ON _BRUSH_ON _USESLOPETEX_ON
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords:
+  - _AREA_ON
+  - _BRUSH_ON
+  - _HIDETERRAINTYPE_ON
+  - _USESLOPETEX_ON
   m_LightmapFlags: 5
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
   stringTagMap: {}
   disabledShaderPasses: []
+  m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -243,6 +251,7 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    m_Ints: []
     m_Floats:
     - _AbyssLevel: 0.25
     - _Area: 1
@@ -253,15 +262,15 @@ Material:
     - _Brush: 0
     - _BrushPainting: 0
     - _BrushSize: 0
-    - _BrushUvX: 0.21144567
-    - _BrushUvY: 0.079572834
+    - _BrushUvX: 0.5716179
+    - _BrushUvY: 0.06824475
     - _BuildGrid: 0
     - _DeepLevel: 1.675625
     - _DepthLevel: 1.5
     - _GeneratingNormal: 0
     - _Grid: 0
     - _GridCamDist: 0.049673967
-    - _GridScale: 102.4
+    - _GridScale: 51.2
     - _GridType: 0
     - _HideSplat0: 0
     - _HideSplat1: 0
@@ -274,31 +283,31 @@ Material:
     - _HideSplat8: 0
     - _HideTerrainType: 1
     - _LightingMultiplier: 1.27
-    - _LowerScale: 256
-    - _LowerScaleNormal: 117.02857
+    - _LowerScale: 5.375328
+    - _LowerScaleNormal: 37.236362
     - _Shininess: 0.03
     - _Slope: 0
-    - _Splat0Scale: 256
-    - _Splat0ScaleNormal: 256
-    - _Splat1Scale: 256
-    - _Splat1ScaleNormal: 256
-    - _Splat2Scale: 256
-    - _Splat2ScaleNormal: 256
-    - _Splat3Scale: 256
-    - _Splat3ScaleNormal: 256
-    - _Splat4Scale: 256
-    - _Splat4ScaleNormal: 256
-    - _Splat5Scale: 256
-    - _Splat5ScaleNormal: 256
-    - _Splat6Scale: 256
-    - _Splat6ScaleNormal: 256
-    - _Splat7Scale: 256
-    - _Splat7ScaleNormal: 256
+    - _Splat0Scale: 4.5919285
+    - _Splat0ScaleNormal: 4.404301
+    - _Splat1Scale: 70.62069
+    - _Splat1ScaleNormal: 68.26667
+    - _Splat2Scale: 13.837838
+    - _Splat2ScaleNormal: 9.846154
+    - _Splat3Scale: 12.880503
+    - _Splat3ScaleNormal: 31.507692
+    - _Splat4Scale: 128
+    - _Splat4ScaleNormal: 128
+    - _Splat5Scale: 128
+    - _Splat5ScaleNormal: 128
+    - _Splat6Scale: 128
+    - _Splat6ScaleNormal: 128
+    - _Splat7Scale: 128
+    - _Splat7ScaleNormal: 128
     - _TTerrainXP: 0
     - _TerrainTypeCapacity: 0.228
     - _TerrainTypeCoof: 0.228
-    - _UpperScale: 8
-    - _UpperScaleNormal: 256
+    - _UpperScale: 4
+    - _UpperScaleNormal: 128
     - _UseSlopeTex: 1
     - _Water: 0
     - _WaterLevel: 1.75
@@ -312,3 +321,4 @@ Material:
     - _SpecColor: {r: 0, g: 0, b: 0, a: 0}
     - _SunAmbience: {r: 0.20800962, g: 0.15, b: 0.1, a: 1}
     - _SunColor: {r: 0.69805765, g: 0.5, b: 0.4, a: 1}
+  m_BuildTextureStacks: []

@@ -1,13 +1,11 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using Selection;
 using FAF.MapEditor;
-using MapLua;
 
 namespace EditMap
 {
-	public partial class PropsInfo : MonoBehaviour
+	public partial class PropsInfo
 	{
 
 		public void DropAtGameplay()
