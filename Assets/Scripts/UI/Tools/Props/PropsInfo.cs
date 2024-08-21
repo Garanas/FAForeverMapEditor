@@ -10,21 +10,19 @@ using FAF.MapEditor;
 
 namespace EditMap
 {
-	public partial class PropsInfo : MonoBehaviour
+	public partial class PropsInfo : ToolPage
 	{
-
+		[Header("Props Info")]
 		public static PropsInfo Current;
+		public static List<PropTypeGroup> AllPropsTypes = new List<PropTypeGroup>();
 
 		[Header("Connections")]
 		public Editing Edit;
-		public static List<PropTypeGroup> AllPropsTypes;
 		public Transform Pivot;
 		public GameObject PropGroupObject;
 		public Text TotalMass;
 		public Text TotalEnergy;
 		public Text TotalTime;
-		public GameObject[] Tabs;
-		public GameObject[] TabSelected;
 		public GameObject PropObjectPrefab;
 		public Transform PropsParent;
 
@@ -139,10 +137,10 @@ namespace EditMap
 		}
 		#endregion
 
-		void Awake()
+		protected override void Awake()
 		{
+			base.Awake();
 			Current = this;
-			ShowTab(CurrentTab);
 		}
 
 
@@ -158,8 +156,8 @@ namespace EditMap
 			SelectionManager.Current.SetPasteActionAction(PasteAction);
 			SelectionManager.Current.SetDuplicateActionAction(DuplicateAction);
 
-			ShowTab(CurrentTab);
-
+			ChangePage(CurrentPage);
+			
 			ReloadPropStats();
 
 			MapLuaParser.Current.UpdateArea();
@@ -220,7 +218,7 @@ namespace EditMap
 
 		void Update()
 		{
-			if (Tabs[1].activeSelf && AllowBrushUpdate)
+			if (Pages[1].gameObject.activeSelf && AllowBrushUpdate)
 			{
 				BrushUpdate();
 			}
@@ -232,6 +230,7 @@ namespace EditMap
 			PropsRenderer.StopPropsUpdate();
 
 			if (AllPropsTypes != null && AllPropsTypes.Count > 0)
+			{
 				for (int i = 0; i < AllPropsTypes.Count; i++)
 				{
 					foreach (Prop PropInstance in AllPropsTypes[i].PropsInstances)
@@ -239,6 +238,7 @@ namespace EditMap
 						Destroy(PropInstance.Obj.gameObject);
 					}
 				}
+			}
 
 			AllPropsTypes = new List<PropTypeGroup>();
 			if (Current)
@@ -469,25 +469,19 @@ namespace EditMap
 			Preview.Show(PaintPropObjects[ID].BP.LODs[0].Albedo, Parent, 35f);
 		}
 
-		public int CurrentTab { get; private set; } = 0;
-
-		public void ShowTab(int id)
+		public override bool ChangePage(int newPageID)
 		{
-			for (int i = 0; i < Tabs.Length; i++)
-			{
-				Tabs[i].SetActive(i == id);
-				TabSelected[i].SetActive(i == id);
-			}
+			bool pageChanged = base.ChangePage(newPageID);
 
-			CurrentTab = id;
-
-			if (id == 2)
+			if(newPageID == 2)
 				ShowReclaimGroups();
-
-			if (id == 1)
+			
+			if(newPageID == 1)
 				GoToPainting();
 			else
 				GoToSelection();
+			
+			return pageChanged;
 		}
 
 

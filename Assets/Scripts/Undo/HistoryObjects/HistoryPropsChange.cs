@@ -15,7 +15,7 @@ namespace UndoHistory
 		public override void Register(HistoryParameter Param)
 		{
 			Groups = new Dictionary<PropsInfo.PropTypeGroup, HashSet<Prop>>();
-			Page = PropsInfo.Current.CurrentTab;
+			Page = PropsInfo.Current.GetCurrentPage();
 			foreach (PropsInfo.PropTypeGroup Grp in PropsInfo.AllPropsTypes)
 			{
 				HashSet<Prop> OldProps = new HashSet<Prop>(Grp.PropsInstances);
@@ -43,7 +43,7 @@ namespace UndoHistory
 			}
 
 			Undo.Current.EditMenu.ChangeCategory(6);
-			PropsInfo.Current.ShowTab(Page);
+			PropsInfo.Current.ChangePage(Page);
 		}
 	}
 }
