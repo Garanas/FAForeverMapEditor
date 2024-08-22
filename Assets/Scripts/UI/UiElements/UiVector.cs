@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
@@ -23,14 +21,14 @@ namespace Ozone.UI
 		bool Loading = false;
 
 		Vector4 LastValue = Vector4.one;
+		
 		void UpdateLastValue()
 		{
 			LastValue.x = FormatFloat(LuaParser.Read.StringToFloat(X.text));
 			LastValue.y = FormatFloat(LuaParser.Read.StringToFloat(Y.text));
-			if(Z)
-				LastValue.z = FormatFloat(LuaParser.Read.StringToFloat(Z.text));
-			if(W)
-				LastValue.w = FormatFloat(LuaParser.Read.StringToFloat(W.text));
+			// Ensure Z/W values are 0f if this is a lower dimensional vector
+			LastValue.z = Z ? FormatFloat(LuaParser.Read.StringToFloat(Z.text)) : 0f;
+			LastValue.w = W ? FormatFloat(LuaParser.Read.StringToFloat(W.text)) : 0f;
 		}
 
 		public Color GetColorValue()
@@ -40,29 +38,21 @@ namespace Ozone.UI
 
 		public Vector2 GetVector2Value()
 		{
-			if (Normalized)
-			{
-				return LastValue.normalized;
-			}
-			return LastValue;
+			// Cast LastValue to V2 before normalizing to guarantee the extra dimensions are dropped before normalizing
+			var vec2 = (Vector2)LastValue;
+			return Normalized ? vec2.normalized : vec2;
 		}
 
 		public Vector3 GetVector3Value()
 		{
-			if (Normalized)
-			{
-				return LastValue.normalized;
-			}
-			return LastValue;
+			// Cast LastValue to V3 before normalizing to guarantee the extra dimensions are dropped before normalizing
+			var vec3 = (Vector3)LastValue;
+			return Normalized ? vec3.normalized : vec3;
 		}
 
 		public Vector4 GetVector4Value()
 		{
-			if (Normalized)
-			{
-				return LastValue.normalized;
-			}
-			return LastValue;
+			return Normalized ? LastValue.normalized : LastValue;
 		}
 
 		public void SetVectorField(float x, float y, float z = 1f, float w = 1f, bool normalized = false)
@@ -92,9 +82,9 @@ namespace Ozone.UI
 			X.text = value.x.ToString();
 			Y.text = value.y.ToString();
 			if(Z)
-			Z.text = value.z.ToString();
+				Z.text = value.z.ToString();
 			if(W)
-			W.text = value.w.ToString();
+				W.text = value.w.ToString();
 
 			Normalized = normalized;
 
