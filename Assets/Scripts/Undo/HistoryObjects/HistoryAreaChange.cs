@@ -60,7 +60,6 @@ namespace UndoHistory
 
 			Undo.Current.EditMenu.ChangeCategory(0);
 			Undo.Current.EditMenu.MapInfoMenu.ChangePage(2);
-			AreaInfo.Current.AreaDefault.isOn = true;
 			AreaInfo.Current.ToggleSelected();
 			AreaInfo.Current.UpdateList();
 		}

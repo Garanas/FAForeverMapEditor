@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
@@ -10,21 +9,24 @@ public class AreaInfo : MonoBehaviour {
 
 	public Toggle BorderRelative;
 	public Toggle Rounding;
-	public Toggle AreaHide;
-	public Toggle AreaDefault;
 	public GameObject AreaPrefab;
 	public Transform Pivot;
 	public ToggleGroup ToggleGrp;
 
-
 	List<AreaListObject> Created = new List<AreaListObject>();
 
+	
 	public static void CleanSelection()
 	{
 		HideArea = false;
 		SelectedArea = null;
 
+		if (Current != null)
+		{
+			Current.DeselectAll();
+		}
 	}
+	
 
 	private void Awake()
 	{
@@ -33,7 +35,6 @@ public class AreaInfo : MonoBehaviour {
 
 	private void OnEnable()
 	{
-
 		UpdateList();
 	}
 
@@ -73,7 +74,6 @@ public class AreaInfo : MonoBehaviour {
 
 	void Generate()
 	{
-
 		MapLua.SaveLua.Areas[] Areas = MapLuaParser.Current.SaveLuaFile.Data.areas;
 
 		bool ToogleFound = false;
@@ -85,19 +85,19 @@ public class AreaInfo : MonoBehaviour {
 
 			AreaObject.Controler = this;
 			AreaObject.InstanceId = i;
-			AreaObject.Name.text = Areas[i].Name;
-			AreaObject.SizeX.text = Areas[i].rectangle.x.ToString();
-			AreaObject.SizeY.text = Areas[i].rectangle.y.ToString();
+			AreaObject.Name.SetTextWithoutNotify(Areas[i].Name);
+			AreaObject.SizeX.SetTextWithoutNotify(Areas[i].rectangle.x.ToString());
+			AreaObject.SizeY.SetTextWithoutNotify(Areas[i].rectangle.y.ToString());
 
 			if (BorderRelative.isOn)
 			{
-				AreaObject.SizeWidth.text = (ScmapEditor.Current.map.Width - Areas[i].rectangle.width).ToString();
-				AreaObject.SizeHeight.text = (ScmapEditor.Current.map.Height - Areas[i].rectangle.height).ToString();
+				AreaObject.SizeWidth.SetTextWithoutNotify((ScmapEditor.Current.map.Width - Areas[i].rectangle.width).ToString());
+				AreaObject.SizeHeight.SetTextWithoutNotify((ScmapEditor.Current.map.Height - Areas[i].rectangle.height).ToString());
 			}
 			else
 			{
-				AreaObject.SizeWidth.text = Areas[i].rectangle.width.ToString();
-				AreaObject.SizeHeight.text = Areas[i].rectangle.height.ToString();
+				AreaObject.SizeWidth.SetTextWithoutNotify(Areas[i].rectangle.width.ToString());
+				AreaObject.SizeHeight.SetTextWithoutNotify(Areas[i].rectangle.height.ToString());
 			}
 
 			AreaObject.Selected.group = ToggleGrp;
@@ -105,7 +105,7 @@ public class AreaInfo : MonoBehaviour {
 
 			if(Areas[i] == SelectedArea)
 			{
-				AreaObject.Selected.isOn = true;
+				AreaObject.Selected.SetIsOnWithoutNotify(true);
 				ToogleFound = true;
 			}
 
@@ -113,70 +113,113 @@ public class AreaInfo : MonoBehaviour {
 		}
 
 		if (SelectedArea != null && !ToogleFound)
-			AreaHide.isOn = true;
-
+		{
+			HideArea = true;
+		}
 	}
 
 
-	#region Selection
+#region Selection
 	public static bool HideArea = false;
 	public static MapLua.SaveLua.Areas SelectedArea;
 
 	public void ToggleSelected()
 	{
-		HideArea = AreaHide.isOn;
-
-		if (AreaHide.isOn || AreaDefault.isOn)
+		bool anyAreaSelected = IsAnySelected();
+		bool noneSelected = !anyAreaSelected;
+		HideArea &= noneSelected;
+		
+		if (noneSelected || HideArea)
 		{
-			SelectedArea = null;
+			DeselectAll();
 		}
 		MapLuaParser.Current.UpdateArea(Rounding.isOn);
 	}
 
 	public void SelectArea(int InstanceID)
 	{
+		HideArea = false;
 		SelectedArea = MapLuaParser.Current.SaveLuaFile.Data.areas[InstanceID];
 		MapLuaParser.Current.UpdateArea(Rounding.isOn);
 	}
 
+	public void DeselectArea(int InstanceID)
+	{
+		if (SelectedArea == MapLuaParser.Current.SaveLuaFile.Data.areas[InstanceID])
+			SelectedArea = null;
+		if (IsAnySelected())
+			return;
+		SetSelectionToHide();
+	}
 
-	#endregion
+	private void DeselectAll()
+	{
+		foreach (var area in Created)
+		{
+			area.Selected.SetIsOnWithoutNotify(false);
+		}
+		SelectedArea = null;
+		MapLuaParser.Current.UpdateArea(Rounding.isOn);
+	}
+	
+	private void SetSelectionToDefault()
+	{
+		HideArea = false;
+		DeselectAll();
+	}
+
+	private void SetSelectionToHide()
+	{
+		HideArea = true;
+		SelectedArea = null;
+		MapLuaParser.Current.UpdateArea(Rounding.isOn);
+	}
+
+	private bool IsAnySelected()
+	{
+		foreach (var area in Created)
+		{
+			if (area.Selected.isOn)
+				return true;
+		}
+
+		return false;
+	}
+#endregion
 
 
-	#region UI
+#region UI
 	public void OnValuesChange(int instanceID)
 	{
-		Undo.RegisterUndo(new UndoHistory.HistoryAreaChange(), new UndoHistory.HistoryAreaChange.AreaChangeParam(MapLuaParser.Current.SaveLuaFile.Data.areas[instanceID]));
+		var editedArea = Created[instanceID];
+		var targetDataObject = MapLuaParser.Current.SaveLuaFile.Data.areas[instanceID];
+		
+		Undo.RegisterUndo(new UndoHistory.HistoryAreaChange(), new UndoHistory.HistoryAreaChange.AreaChangeParam(targetDataObject));
 
-		MapLuaParser.Current.SaveLuaFile.Data.areas[instanceID].Name = Created[instanceID].Name.text;
+		
+		targetDataObject.Name = editedArea.Name.text;
 
-		MapLuaParser.Current.SaveLuaFile.Data.areas[instanceID].rectangle.x = LuaParser.Read.StringToFloat( Created[instanceID].SizeX.text);
-		MapLuaParser.Current.SaveLuaFile.Data.areas[instanceID].rectangle.y = LuaParser.Read.StringToFloat(Created[instanceID].SizeY.text);
-
-		MapLuaParser.Current.SaveLuaFile.Data.areas[instanceID].rectangle.width = LuaParser.Read.StringToFloat(Created[instanceID].SizeWidth.text);
-		MapLuaParser.Current.SaveLuaFile.Data.areas[instanceID].rectangle.height = LuaParser.Read.StringToFloat(Created[instanceID].SizeHeight.text);
+		targetDataObject.rectangle.x = LuaParser.Read.StringToFloat(editedArea.SizeX.text);
+		targetDataObject.rectangle.y = LuaParser.Read.StringToFloat(editedArea.SizeY.text);
 
 		if (BorderRelative.isOn)
 		{
-			MapLuaParser.Current.SaveLuaFile.Data.areas[instanceID].rectangle.width = ScmapEditor.Current.map.Width - LuaParser.Read.StringToFloat(Created[instanceID].SizeWidth.text);
-			MapLuaParser.Current.SaveLuaFile.Data.areas[instanceID].rectangle.height = ScmapEditor.Current.map.Height - LuaParser.Read.StringToFloat(Created[instanceID].SizeHeight.text);
+			targetDataObject.rectangle.width = ScmapEditor.Current.map.Width - LuaParser.Read.StringToFloat(editedArea.SizeWidth.text);
+			targetDataObject.rectangle.height = ScmapEditor.Current.map.Height - LuaParser.Read.StringToFloat(editedArea.SizeHeight.text);
 		}
 		else
 		{
-			MapLuaParser.Current.SaveLuaFile.Data.areas[instanceID].rectangle.width = LuaParser.Read.StringToFloat(Created[instanceID].SizeWidth.text);
-			MapLuaParser.Current.SaveLuaFile.Data.areas[instanceID].rectangle.height = LuaParser.Read.StringToFloat(Created[instanceID].SizeHeight.text);
-
+			targetDataObject.rectangle.width = LuaParser.Read.StringToFloat(editedArea.SizeWidth.text);
+			targetDataObject.rectangle.height = LuaParser.Read.StringToFloat(editedArea.SizeHeight.text);
 		}
 
-
-		if (SelectedArea == MapLuaParser.Current.SaveLuaFile.Data.areas[instanceID])
+		if (SelectedArea == targetDataObject)
 		{
 			MapLuaParser.Current.UpdateArea(Rounding.isOn);
 		}
 	}
-
-
 #endregion
+
 
 	public void AddNew()
 	{
@@ -219,8 +262,7 @@ public class AreaInfo : MonoBehaviour {
 
 		if (SelectedArea == MapLuaParser.Current.SaveLuaFile.Data.areas[instanceID])
 		{
-			SelectedArea = null;
-			AreaDefault.isOn = true;
+			SetSelectionToHide();
 		}
 
 		List<MapLua.SaveLua.Areas> Areas = MapLuaParser.Current.SaveLuaFile.Data.areas.ToList();
@@ -232,6 +274,4 @@ public class AreaInfo : MonoBehaviour {
 
 		UpdateList();
 	}
-
-
 }
