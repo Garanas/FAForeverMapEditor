@@ -161,12 +161,6 @@ public class AreaInfo : MonoBehaviour {
 		SelectedArea = null;
 		MapLuaParser.Current.UpdateArea(Rounding.isOn);
 	}
-	
-	private void SetSelectionToDefault()
-	{
-		HideArea = false;
-		DeselectAll();
-	}
 
 	private void SetSelectionToHide()
 	{
