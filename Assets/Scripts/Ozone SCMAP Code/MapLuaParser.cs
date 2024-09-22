@@ -10,11 +10,12 @@ using EditMap;
 using NLua;
 using MapLua;
 using FAF.MapEditor;
+using UnityEngine.Events;
 
 public partial class MapLuaParser : MonoBehaviour
 {
-
 	public static MapLuaParser Current;
+	public static UnityEvent OnMapLoaded = new();
 
 	[Header("LUA")]
 	public string LoadedMapFolder;
@@ -381,6 +382,8 @@ public partial class MapLuaParser : MonoBehaviour
 			MapLuaParser.Current.UpdateArea();
 
 			GenericInfoPopup.ShowInfo("Map successfully loaded!\n" + FolderName + "/" + ScenarioFileName + ".lua");
+			
+			OnMapLoaded?.Invoke();
 		}
 		else
 		{
@@ -743,7 +746,6 @@ public partial class MapLuaParser : MonoBehaviour
 	public void UpdateArea()
 	{
 		UpdateArea(LastRounding);
-
 	}
 
 	bool LastRounding = true;
@@ -762,6 +764,7 @@ public partial class MapLuaParser : MonoBehaviour
 
 				// Set shaders
 				Shader.SetGlobalInt("_Area", 1);
+				// _AreaRect uses the params (x,y,width,height) as (x1,y1,x2,y2), ie: Upper Left Corner and Lower Right Corner
 				Shader.SetGlobalVector("_AreaRect", new Vector4(bigestAreaRect.x / 10f, bigestAreaRect.y / 10f, bigestAreaRect.width / 10f, bigestAreaRect.height / 10f));
 				SetBounds(bigestAreaRect);
 			}
