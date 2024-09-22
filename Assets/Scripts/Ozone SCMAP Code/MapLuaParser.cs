@@ -10,11 +10,12 @@ using EditMap;
 using NLua;
 using MapLua;
 using FAF.MapEditor;
+using UnityEngine.Events;
 
 public partial class MapLuaParser : MonoBehaviour
 {
-
 	public static MapLuaParser Current;
+	public static UnityEvent OnMapLoaded = new();
 
 	[Header("LUA")]
 	public string LoadedMapFolder;
@@ -381,6 +382,8 @@ public partial class MapLuaParser : MonoBehaviour
 			MapLuaParser.Current.UpdateArea();
 
 			GenericInfoPopup.ShowInfo("Map successfully loaded!\n" + FolderName + "/" + ScenarioFileName + ".lua");
+			
+			OnMapLoaded?.Invoke();
 		}
 		else
 		{

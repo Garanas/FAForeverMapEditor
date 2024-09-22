@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
@@ -35,12 +36,13 @@ public class AreaInfo : MonoBehaviour {
 
 	private void OnEnable()
 	{
+		MapLuaParser.OnMapLoaded.AddListener(UpdateList);
 		UpdateList();
 	}
 
 	private void OnDisable()
 	{
-
+		MapLuaParser.OnMapLoaded.RemoveListener(UpdateList);
 	}
 
 	public void SwitchBorderRelative()
