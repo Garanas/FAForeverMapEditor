@@ -1,90 +1,93 @@
 
 
 
-Shader "FAShaders/TTerrain"
+Shader "FAShaders/Terrain"
 {
     Properties
     {
-        _SpecColor ("Specular Color", Color) = (0.5, 0.5, 0.5, 1)
-	    _Shininess ("Shininess", Range (0.03, 1)) = 0.078125
-	    [MaterialToggle] _Grid("Grid", Int) = 0
-	    _GridType("Grid type", Int) = 0
-	    [MaterialToggle] _Slope("Slope", Int) = 0
-	    [MaterialToggle] _UseSlopeTex("Use Slope Data", Int) = 0
-	    _SlopeTex ("Slope data", 2D) = "black" {}
-		
-	    // set by terrain engine
-	    _Control ("Control (RGBA)", 2D) = "black" {}
-	    _ControlXP ("ControlXP (RGBA)", 2D) = "black" {}
-	    _Control2XP ("Control2XP (RGBA)", 2D) = "black" {}
+        // It is conventional to begin all property names with an underscore.
+        // However, to be as close to the FA shader code as possible, we ignore this here.
+        // We use underscores only for variables that are introduced by the editor.
 
-	
-	    [MaterialToggle] _HideSplat0("Hide splat 2", Int) = 0
-	    [MaterialToggle] _HideSplat1("Hide splat 2", Int) = 0
-	    [MaterialToggle] _HideSplat2("Hide splat 3", Int) = 0
-	    [MaterialToggle] _HideSplat3("Hide splat 4", Int) = 0
-	    [MaterialToggle] _HideSplat4("Hide splat 5", Int) = 0
-	    [MaterialToggle] _HideSplat5("Hide splat 6", Int) = 0
-	    [MaterialToggle] _HideSplat6("Hide splat 7", Int) = 0
-	    [MaterialToggle] _HideSplat7("Hide splat 8", Int) = 0
-	    [MaterialToggle] _HideSplat8("Hide splat Upper", Int) = 0
-	    [MaterialToggle] _HideTerrainType("Hide Terrain Type", Int) = 0
+        ShadowFillColor ("Shadow Fill Color", Color) = (0.0, 0.0, 0.0, 1)
+        LightingMultiplier ("Lighting Multiplier", Float) = 1
+        SunDirection ("Sun Direction", Vector) = (0.0, 1.0, 0.0, 1)
+        SunAmbience ("Ambient Light Color", Color) = (0.0, 0.0, 0.0, 1)
+        SunColor ("Sun Color", Color) = (0.0, 0.0, 0.0, 1)
+        SpecularColor ("Specular Color", Color) = (0.0, 0.0, 0.0, 1)
+        WaterElevation ("Water Elevation", Float) = 0
 
-	    _SplatAlbedoArray ("Albedo array", 2DArray) = "" {}
+        LowerAlbedoTile ("Lower Albedo Tile", Float) = 1
+        LowerNormalTile ("Lower Normal Tile", Float) = 1
+        Stratum0AlbedoTile ("Stratum 0 Albedo Tile", Float) = 1
+        Stratum1AlbedoTile ("Stratum 1 Albedo Tile", Float) = 1
+        Stratum2AlbedoTile ("Stratum 2 Albedo Tile", Float) = 1
+        Stratum3AlbedoTile ("Stratum 3 Albedo Tile", Float) = 1
+        Stratum4AlbedoTile ("Stratum 4 Albedo Tile", Float) = 1
+        Stratum5AlbedoTile ("Stratum 5 Albedo Tile", Float) = 1
+        Stratum6AlbedoTile ("Stratum 6 Albedo Tile", Float) = 1
+        Stratum7AlbedoTile ("Stratum 7 Albedo Tile", Float) = 1
+        Stratum0NormalTile ("Stratum 0 Normal Tile", Float) = 1
+        Stratum1NormalTile ("Stratum 1 Normal Tile", Float) = 1
+        Stratum2NormalTile ("Stratum 2 Normal Tile", Float) = 1
+        Stratum3NormalTile ("Stratum 3 Normal Tile", Float) = 1
+        Stratum4NormalTile ("Stratum 4 Normal Tile", Float) = 1
+        Stratum5NormalTile ("Stratum 5 Normal Tile", Float) = 1
+        Stratum6NormalTile ("Stratum 6 Normal Tile", Float) = 1
+        Stratum7NormalTile ("Stratum 7 Normal Tile", Float) = 1
+        UpperAlbedoTile ("Upper Albedo Tile", Float) = 1
+        UpperNormalTile ("Upper Normal Tile", Float) = 1
+
+        // used to generate texture coordinates
+        // this is 1/mapresolution
+        TerrainScale ("Terrain Scale", Range (0, 1)) = 1
+
+        UtilitySamplerA ("masks of stratum layers 0 - 3", 2D) = "black" {}
+        UtilitySamplerB ("masks of stratum layers 4 - 7", 2D) = "black" {}
+        UtilitySamplerC ("water properties", 2D) = "black" {}  // not set?
+
+    	LowerAlbedoSampler ("Layer Lower (R)", 2D) = "white" {}
+	    LowerNormalSampler ("Normal Lower (R)", 2D) = "bump" {}
+    	UpperAlbedoSampler ("Layer Lower (R)", 2D) = "white" {}
+
+        _SplatAlbedoArray ("Albedo array", 2DArray) = "" {}
 	    _SplatNormalArray ("Normal array", 2DArray) = "" {}
 
+        [MaterialToggle] _HideStratum0("Hide stratum 0", Integer) = 0
+	    [MaterialToggle] _HideStratum1("Hide stratum 1", Integer) = 0
+	    [MaterialToggle] _HideStratum2("Hide stratum 2", Integer) = 0
+	    [MaterialToggle] _HideStratum3("Hide stratum 3", Integer) = 0
+	    [MaterialToggle] _HideStratum4("Hide stratum 4", Integer) = 0
+	    [MaterialToggle] _HideStratum5("Hide stratum 5", Integer) = 0
+	    [MaterialToggle] _HideStratum6("Hide stratum 6", Integer) = 0
+	    [MaterialToggle] _HideStratum7("Hide stratum 7", Integer) = 0
+	    [MaterialToggle] _HideStratum8("Hide upper stratum", Integer) = 0
 
-	    _Splat0Scale ("Splat1 Level", Range (1, 1024)) = 10
-	    _Splat1Scale ("Splat2 Level", Range (1, 1024)) = 10
-	    _Splat2Scale ("Splat3 Level", Range (1, 1024)) = 10
-	    _Splat3Scale ("Splat4 Level", Range (1, 1024)) = 10
-	    _Splat4Scale ("Splat5 Level", Range (1, 1024)) = 10
-	    _Splat5Scale ("Splat6 Level", Range (1, 1024)) = 10
-	    _Splat6Scale ("Splat7 Level", Range (1, 1024)) = 10
-	    _Splat7Scale ("Splat8 Level", Range (1, 1024)) = 10
+	    [MaterialToggle] _HideTerrainType("Hide Terrain Type", Integer) = 0
+       	_TerrainTypeAlbedo ("Terrain Type Albedo", 2D) = "black" {}
+	    _TerrainTypeCapacity ("Terrain Type Capacity", Range(0,1)) = 0.228
 
-	    // set by terrain engine
-	    [MaterialToggle] _GeneratingNormal("Generating Normal", Int) = 0
-	    _TerrainNormal ("Terrain Normal", 2D) = "bump" {}
-	
+        [MaterialToggle] _Grid("Grid", Integer) = 0
+        _GridType("Grid type", Integer) = 0
+        // This should be refactored so we can use TerrainScale instead
+        _GridScale ("Grid Scale", Range (0, 2048)) = 512
+	    _GridTexture ("Grid Texture", 2D) = "white" {}
 
-	    _Splat0ScaleNormal ("Splat1 Normal Level", Range (1, 1024)) = 10
-	    _Splat1ScaleNormal ("Splat2 Normal Level", Range (1, 1024)) = 10
-	    _Splat2ScaleNormal ("Splat3 Normal Level", Range (1, 1024)) = 10
-	    _Splat3ScaleNormal ("Splat4 Normal Level", Range (1, 1024)) = 10
-	    _Splat4ScaleNormal ("Splat5 Normal Level", Range (1, 1024)) = 10
-	    _Splat5ScaleNormal ("Splat6 Normal Level", Range (1, 1024)) = 10
-	    _Splat6ScaleNormal ("Splat7 Normal Level", Range (1, 1024)) = 10
-	    _Splat7ScaleNormal ("Splat8 Normal Level", Range (1, 1024)) = 10
+        [MaterialToggle] _Slope("Slope", Integer) = 0
+	    [MaterialToggle] _UseSlopeTex("Use Slope Data", Integer) = 0
+        _SlopeTex ("Slope data", 2D) = "black" {}
 
-	    // used in fallback on old cards & base map
-	    [HideInInspector] _MainTex ("BaseMap (RGB)", 2D) = "white" {}
-	    [HideInInspector] _Color ("Main Color", Color) = (1,1,1,1)
-
-	    [MaterialToggle] _Brush ("Brush", Int) = 0
-	    [MaterialToggle] _BrushPainting ("Brush painting", Int) = 0
+      	[MaterialToggle] _Brush ("Brush", Integer) = 0
+	    [MaterialToggle] _BrushPainting ("Brush painting", Integer) = 0
 	    _BrushTex ("Brush (RGB)", 2D) = "white" {}
 	    _BrushSize ("Brush Size", Range (0, 128)) = 0
 	    _BrushUvX ("Brush X", Range (0, 1)) = 0
 	    _BrushUvY ("Brush Y", Range (0, 1)) = 0
 
-	    //Lower Stratum
-	    _SplatLower ("Layer Lower (R)", 2D) = "white" {}
-	    _NormalLower ("Normal Lower (R)", 2D) = "bump" {}
-	    _LowerScale ("Lower Level", Range (1, 128)) = 1
-	    _LowerScaleNormal ("Lower Normal Level", Range (1, 128)) = 1
+        // Is this still needed?
+        [MaterialToggle] _GeneratingNormal("Generating Normal", Integer) = 0
+	    _TerrainNormal ("Terrain Normal", 2D) = "bump" {}
 
-	    //Upper Stratum
-	    _SplatUpper ("Layer Lower (R)", 2D) = "white" {}
-	    _NormalUpper ("Normal Lower (R)", 2D) = "bump" {}
-	    _UpperScale ("Upper Level", Range (1, 128)) = 1
-	    _UpperScaleNormal ("Upper Normal Level", Range (1, 128)) = 1
-
-	    _GridScale ("Grid Scale", Range (0, 2048)) = 512
-	    _GridTexture ("Grid Texture", 2D) = "white" {}
-
-	    _TerrainTypeAlbedo ("Terrain Type Albedo", 2D) = "black" {}
-	    _TerrainTypeCapacity ("Terrain Type Capacity", Range(0,1)) = 0.228
     }
     SubShader
     {
@@ -98,47 +101,35 @@ Shader "FAShaders/TTerrain"
             #pragma target 3.5
 
 
-            sampler2D _MyGrabTexture3;
-			sampler2D _WaterRam;
-			half _Shininess;
-			fixed4 _Abyss;
-			fixed4 _Deep;
-			int _Water;
-			float _WaterLevel;
-            fixed4 _ShadowColor;
-
-			int _Slope, _UseSlopeTex;
+			int _Slope;
+            int _UseSlopeTex;
 			sampler2D _SlopeTex;
 
 			int _Grid, _GridType;
-			half _GridScale;
+            half _GridScale;
 			half _GridCamDist;
 			sampler2D _GridTexture;
 
-			//uniform
-			sampler2D _ControlXP;
-			sampler2D _Control2XP;
-			uniform sampler2D _UtilitySamplerC;
 			sampler2D _TerrainNormal;
-			sampler2D _SplatLower, _SplatUpper;
 			sampler2D _TerrainTypeAlbedo;
-			sampler2D  _NormalLower;
-			half _Splat0Scale, _Splat1Scale, _Splat2Scale, _Splat3Scale, _Splat4Scale, _Splat5Scale, _Splat6Scale, _Splat7Scale;
-			half _Splat0ScaleNormal, _Splat1ScaleNormal, _Splat2ScaleNormal, _Splat3ScaleNormal, _Splat4ScaleNormal, _Splat5ScaleNormal, _Splat6ScaleNormal, _Splat7ScaleNormal;
+	
+			UNITY_DECLARE_TEX2DARRAY(_StratumAlbedoArray);
+			UNITY_DECLARE_TEX2DARRAY(_StratumNormalArray);
 
-			UNITY_DECLARE_TEX2DARRAY(_SplatAlbedoArray);
-			 UNITY_DECLARE_TEX2DARRAY(_SplatNormalArray);
-
-			int _HideSplat0, _HideSplat1, _HideSplat2, _HideSplat3, _HideSplat4, _HideSplat5, _HideSplat6, _HideSplat7, _HideSplat8;
+			int _HideStratum0;
+            int _HideStratum1;
+            int _HideStratum2;
+            int _HideStratum3;
+            int _HideStratum4;
+            int _HideStratum5;
+            int _HideStratum6;
+            int _HideStratum7;
+            int _HideStratum8;
 			int _HideTerrainType;
 			float _TerrainTypeCapacity;
-		
-			half _LowerScale, _UpperScale;
-			half _LowerScaleNormal, _UpperScaleNormal;
-			uniform int _TTerrainXP;
-			uniform float _WaterScaleX, _WaterScaleZ;
 
-			int _Brush, _BrushPainting;
+			int _Brush;
+            int _BrushPainting;
 			sampler2D _BrushTex;
 			half _BrushSize;
 			half _BrushUvX;
@@ -147,65 +138,51 @@ Shader "FAShaders/TTerrain"
 			uniform int _Area;
 			uniform half4 _AreaRect;
 
-            ////////
-            // compatibility section
-            ////////
-
-            // defined by game settings or console commands
             int ShadowsEnabled;
             float ShadowSize;
 
-            float3 ShadowFillColor = _ShadowColor;
-            float LightingMultiplier = _LightingMultiplier;
-            float3 SunDirection = ?;
-            float3 SunAmbience = _SunAmbience;
-            float3 SunColor = _SunColor;
-            float4 SpecularColor = _SpecColor;
-            float WaterElevation = _WaterLevel;
-            float WaterElevationDeep = _Deep;
-            float WaterElevationAbyss = _Abyss;
+            float3 ShadowFillColor;
+            float LightingMultiplier;
+            float3 SunDirection;
+            float3 SunAmbience;
+            float3 SunColor;
+            float4 SpecularColor;
+            float WaterElevation;
 
-            float4 LowerAlbedoTile = _GridScale / _LowerScale;
-            float4 LowerNormalTile  = _GridScale / _LowerScaleNormal;
-            float4 Stratum0AlbedoTile = _GridScale / _Splat0Scale;
-            float4 Stratum1AlbedoTile = _GridScale / _Splat1Scale;
-            float4 Stratum2AlbedoTile = _GridScale / _Splat2Scale;
-            float4 Stratum3AlbedoTile = _GridScale / _Splat3Scale;
-            float4 Stratum4AlbedoTile = _GridScale / _Splat4Scale;
-            float4 Stratum5AlbedoTile = _GridScale / _Splat5Scale;
-            float4 Stratum6AlbedoTile = _GridScale / _Splat6Scale;
-            float4 Stratum7AlbedoTile = _GridScale / _Splat7Scale;
-            float4 Stratum0NormalTile = _GridScale / _Splat0ScaleNormal;
-            float4 Stratum1NormalTile = _GridScale / _Splat1ScaleNormal;
-            float4 Stratum2NormalTile = _GridScale / _Splat2ScaleNormal;
-            float4 Stratum3NormalTile = _GridScale / _Splat3ScaleNormal;
-            float4 Stratum4NormalTile = _GridScale / _Splat4ScaleNormal;
-            float4 Stratum5NormalTile = _GridScale / _Splat5ScaleNormal;
-            float4 Stratum6NormalTile = _GridScale / _Splat6ScaleNormal;
-            float4 Stratum7NormalTile = _GridScale / _Splat7ScaleNormal;
-            float4 UpperAlbedoTile = _GridScale / _UpperScale;
-            float4 UpperNormalTile = _GridScale / _UpperScaleNormal;
+            float4 LowerAlbedoTile;
+            float4 LowerNormalTile;
+            float4 Stratum0AlbedoTile;
+            float4 Stratum1AlbedoTile;
+            float4 Stratum2AlbedoTile;
+            float4 Stratum3AlbedoTile;
+            float4 Stratum4AlbedoTile;
+            float4 Stratum5AlbedoTile;
+            float4 Stratum6AlbedoTile;
+            float4 Stratum7AlbedoTile;
+            float4 Stratum0NormalTile;
+            float4 Stratum1NormalTile;
+            float4 Stratum2NormalTile;
+            float4 Stratum3NormalTile;
+            float4 Stratum4NormalTile;
+            float4 Stratum5NormalTile;
+            float4 Stratum6NormalTile;
+            float4 Stratum7NormalTile;
+            float4 UpperAlbedoTile;
+            float4 UpperNormalTile;
 
-            sampler2D Stratum0AlbedoSampler;
-            //...
+            float4 TerrainScale;
 
-            float4 TerrainScale = 1 / _GridScale; 
-            samplerCube environmentSampler;
-            sampler2D ShadowSampler;
-            // masks of stratum layers 1 - 4
             sampler2D UtilitySamplerA;
-            // masks of stratum layers 5 - 8
             sampler2D UtilitySamplerB;
-            // red: wave normal strength
-            // green: water depth
-            // blue: ???
-            // alpha: foam reduction
             sampler2D UtilitySamplerC;
-            sampler WaterRampSampler;
+            sampler1D WaterRampSampler;
 
+            UNITY_DECLARE_SHADOWMAP(ShadowSampler);
 
-
-            
+            sampler2D LowerAlbedoSampler;
+            sampler2D UpperAlbedoSampler;
+            sampler2D LowerNormalSampler;
+       
 
             typedef float4 position_t;
 
@@ -224,6 +201,12 @@ Shader "FAShaders/TTerrain"
                 float4 nearScales           : TEXCOORD6;
                 float4 farScales            : TEXCOORD7;
             };
+
+            float ComputeShadow( float4 vShadowCoord )
+            {
+                vShadowCoord.xy /= vShadowCoord.w;
+                return UNITY_SAMPLE_SHADOW(ShadowSampler, vShadowCoord);
+            }
 
             bool IsExperimentalShader() {
                 // The tile value basically says how often the texture gets repeated on the map.
@@ -275,7 +258,7 @@ Shader "FAShaders/TTerrain"
                 }
 
                 // calculate some specular
-                float3 viewDirection = normalize(worldTerrain.xzy-CameraPosition);
+                float3 viewDirection = normalize(worldTerrain.xzy - _WorldSpaceCameraPos);
 
                 float SunDotNormal = dot( SunDirection, inNormal);
                 float3 R = SunDirection - 2.0f * SunDotNormal * inNormal;
@@ -295,12 +278,52 @@ Shader "FAShaders/TTerrain"
                 return color;
             }
 
+            const float PI = 3.14159265359;
+
+            float3 FresnelSchlick(float hDotN, float3 F0)
+            {
+                return F0 + (1.0 - F0) * pow(1.0 - hDotN, 5.0);
+            }
+
+            float NormalDistribution(float3 n, float3 h, float roughness)
+            {
+                float a2 = roughness*roughness;
+                float nDotH = max(dot(n, h), 0.0);
+                float nDotH2 = nDotH*nDotH;
+
+                float num = a2;
+                float denom = nDotH2 * (a2 - 1.0) + 1.0;
+                denom = PI * denom * denom;
+
+                return num / denom;
+            }
+
+            float GeometrySchlick(float nDotV, float roughness)
+            {
+                float r = (roughness + 1.0);
+                float k = (r*r) / 8.0;
+
+                float num = nDotV;
+                float denom = nDotV * (1.0 - k) + k;
+
+                return num / denom;
+            }
+
+            float GeometrySmith(float3 n, float nDotV, float3 l, float roughness)
+            {
+                float nDotL = max(dot(n, l), 0.0);
+                float gs2 = GeometrySchlick(nDotV, roughness);
+                float gs1 = GeometrySchlick(nDotL, roughness);
+
+                return gs1 * gs2;
+            }
+
             float3 PBR(VS_OUTPUT inV, float4 position, float3 albedo, float3 n, float roughness, float waterDepth) {
                 // See https://blog.selfshadow.com/publications/s2013-shading-course/
 
                 float shadow = 1;
                 float mapShadow = tex2D(UpperAlbedoSampler, position.xy).w; // 1 where sun is, 0 where shadow is
-                shadow = tex2D(ShadowSampler, inV.mShadow.xy).g; // 1 where sun is, 0 where shadow is
+                shadow = UNITY_SAMPLE_SHADOW(ShadowSampler, float3(inV.mShadow.xy, 0));
                 shadow *= mapShadow;
 
 
@@ -356,10 +379,9 @@ Shader "FAShaders/TTerrain"
                 result.farScales =  float4(Stratum0NormalTile.x, Stratum1NormalTile.x, Stratum2NormalTile.x, Stratum3NormalTile.x);
 
                 float4 position = float4(p);
-                position.y *= HeightScale;
 
                 // calculate output position
-                result.mPos = calculateHomogenousCoordinate(position);
+                result.mPos = mul(position, UNITY_MATRIX_VP);
 
                 // calculate 0..1 uv based on size of map
                 result.mTexWT = position.xzyw;
@@ -367,20 +389,13 @@ Shader "FAShaders/TTerrain"
                 result.mTexSS = result.mPos;
                 result.mTexDecal = float4(0,0,0,0);
 
-                result.mViewDirection = normalize(position.xyz-CameraPosition.xyz);
+                result.mViewDirection = normalize(position.xyz - _WorldSpaceCameraPos.xyz);
 
-                // if we have shadows enabled fill in the tex coordinate for the shadow projection
-                if ( shadowed && ( 1 == ShadowsEnabled ))
-                {
-                    result.mShadow = mul(position,ShadowMatrix);
-                    result.mShadow.x = ( +result.mShadow.x + result.mShadow.w ) * 0.5;
-                    result.mShadow.y = ( -result.mShadow.y + result.mShadow.w ) * 0.5;
-                    result.mShadow.z -= 0.01f; // put epsilon in vs to save ps instruction
-                }
-                else
-                {
-                    result.mShadow = float4( 0, 0, 0, 1);
-                }
+                // fill in the tex coordinate for the shadow projection
+                result.mShadow = mul(position, unity_WorldToShadow[0]);
+                result.mShadow.x = ( +result.mShadow.x + result.mShadow.w ) * 0.5;
+                result.mShadow.y = ( -result.mShadow.y + result.mShadow.w ) * 0.5;
+                result.mShadow.z -= 0.01f; // put epsilon in vs to save ps instruction
 
                 return result;
             }
@@ -391,10 +406,10 @@ Shader "FAShaders/TTerrain"
                 float4 mask = saturate(tex2D( UtilitySamplerA, inV.mTexWT * TerrainScale));
 
                 float4 lowerNormal = normalize(tex2D( LowerNormalSampler, inV.mTexWT  * TerrainScale * LowerNormalTile ) * 2 - 1);
-                float4 stratum0Normal = normalize(tex2D( Stratum0NormalSampler, inV.mTexWT  * TerrainScale * Stratum0NormalTile ) * 2 - 1);
-                float4 stratum1Normal = normalize(tex2D( Stratum1NormalSampler, inV.mTexWT  * TerrainScale * Stratum1NormalTile ) * 2 - 1);
-                float4 stratum2Normal = normalize(tex2D( Stratum2NormalSampler, inV.mTexWT  * TerrainScale * Stratum2NormalTile ) * 2 - 1);
-                float4 stratum3Normal = normalize(tex2D( Stratum3NormalSampler, inV.mTexWT  * TerrainScale * Stratum3NormalTile ) * 2 - 1);
+                float4 stratum0Normal = normalize(UNITY_SAMPLE_TEX2DARRAY(_StratumNormalArray, float3(inV.mTexWT.xy * TerrainScale * Stratum0NormalTile, 0)) * 2 - 1);
+                float4 stratum1Normal = normalize(UNITY_SAMPLE_TEX2DARRAY(_StratumNormalArray, float3(inV.mTexWT.xy * TerrainScale * Stratum1NormalTile, 1)) * 2 - 1);
+                float4 stratum2Normal = normalize(UNITY_SAMPLE_TEX2DARRAY(_StratumNormalArray, float3(inV.mTexWT.xy * TerrainScale * Stratum2NormalTile, 2)) * 2 - 1);
+                float4 stratum3Normal = normalize(UNITY_SAMPLE_TEX2DARRAY(_StratumNormalArray, float3(inV.mTexWT.xy * TerrainScale * Stratum3NormalTile, 3)) * 2 - 1);
 
                 // blend all normals together
                 float4 normal = lowerNormal;
@@ -413,12 +428,12 @@ Shader "FAShaders/TTerrain"
                 float4 mask = saturate(tex2Dproj( UtilitySamplerA, inV.mTexWT  * TerrainScale)* 2 - 1 );
                 float4 upperAlbedo = tex2Dproj( UpperAlbedoSampler, inV.mTexWT  * TerrainScale* UpperAlbedoTile );
                 float4 lowerAlbedo = tex2Dproj( LowerAlbedoSampler, inV.mTexWT  * TerrainScale* LowerAlbedoTile );
-                float4 stratum0Albedo = tex2Dproj( Stratum0AlbedoSampler, inV.mTexWT  * TerrainScale* Stratum0AlbedoTile );
-                float4 stratum1Albedo = tex2Dproj( Stratum1AlbedoSampler, inV.mTexWT  * TerrainScale* Stratum1AlbedoTile );
-                float4 stratum2Albedo = tex2Dproj( Stratum2AlbedoSampler, inV.mTexWT  * TerrainScale* Stratum2AlbedoTile );
-                float4 stratum3Albedo = tex2Dproj( Stratum3AlbedoSampler, inV.mTexWT  * TerrainScale* Stratum3AlbedoTile );
+                float4 stratum0Albedo = UNITY_SAMPLE_TEX2DARRAY(_StratumNormalArray, float3(inV.mTexWT.xy * TerrainScale * Stratum0AlbedoTile, 0));
+                float4 stratum1Albedo = UNITY_SAMPLE_TEX2DARRAY(_StratumNormalArray, float3(inV.mTexWT.xy * TerrainScale * Stratum1AlbedoTile, 1));
+                float4 stratum2Albedo = UNITY_SAMPLE_TEX2DARRAY(_StratumNormalArray, float3(inV.mTexWT.xy * TerrainScale * Stratum2AlbedoTile, 2));
+                float4 stratum3Albedo = UNITY_SAMPLE_TEX2DARRAY(_StratumNormalArray, float3(inV.mTexWT.xy * TerrainScale * Stratum3AlbedoTile, 3));
 
-                float3 normal = TerrainNormalsPS.xyz*2-1;
+                float3 normal = TerrainNormalsPS(inV).xyz*2-1;
 
                 // blend all albedos together
                 float4 albedo = lowerAlbedo;
@@ -432,7 +447,7 @@ Shader "FAShaders/TTerrain"
                 float waterDepth = tex2Dproj( UtilitySamplerC, inV.mTexWT * TerrainScale).g;
 
                 // calculate the lit pixel
-                float4 outColor = CalculateLighting( normal, inV.mTexWT.xyz, albedo.xyz, 1-albedo.w, waterDepth, inV.mShadow, inShadows);
+                float4 outColor = CalculateLighting( normal, inV.mTexWT.xyz, albedo.xyz, 1-albedo.w, waterDepth, inV.mShadow);
 
                 return outColor;
             }
@@ -550,24 +565,24 @@ Shader "FAShaders/TTerrain"
                 {
                     outColor = TerrainPS(inV, true);
                 }
-                else if (shaderNumber == 1)
-                {
-                    outColor = TerrainXP(inV, true);
-                }
-                else if (shaderNumber == 2)
-                {
-                    outColor = Terrain001PS(inV, true);
-                }
+                // else if (shaderNumber == 1)
+                // {
+                //     outColor = TerrainXP(inV, true);
+                // }
+                // else if (shaderNumber == 2)
+                // {
+                //     outColor = Terrain001PS(inV, true);
+                // }
                 else {
-                    outColor = (1, 0, 1, 1);
+                    outColor = float4(1, 0, 1, 1);
                 }
 
-                outColor = renderFog(outColor);
-                outColor = renderOnlyArea(inV.mPos, outColor);
-                outColor.rgb += renderBrush(inV.mTexWT.xy);
-                outColor = renderSlope(outColor);
-                outColor = renderTerrainType(outColor);
-                outColor.rgb += renderGridOverlay(inV.mTexWT.xy);
+                // outColor = renderFog(outColor);
+                // outColor = renderOnlyArea(inV.mPos, outColor);
+                // outColor.rgb += renderBrush(inV.mTexWT.xy);
+                // outColor = renderSlope(outColor);
+                // outColor = renderTerrainType(outColor);
+                // outColor.rgb += renderGridOverlay(inV.mTexWT.xy);
                 
                 return outColor;
             }
