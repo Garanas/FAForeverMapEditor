@@ -437,10 +437,114 @@ Shader "FAShaders/TTerrain"
                 return outColor;
             }
 
+            float4 renderFog(float4 color){
+                return color;
+            }
+            
+            float4 renderOnlyArea(float4 worldPos, float4 color){
+                if(_Area > 0){
+					if(worldPos.x < _AreaRect.x){
+                        color.rgb = 0;
+					}
+					else if(worldPos.x > _AreaRect.z){
+						color.rgb = 0;
+					}
+					else if(worldPos.z < _AreaRect.y - _GridScale){
+						color.rgb = 0;
+					}
+					else if(worldPos.z > _AreaRect.w - _GridScale){
+						color.rgb = 0;
+					}
+				}
+                return color;
+            }
+
+            float3 renderBrush(float2 uv){
+                float3 Emit = 0;
+                if (_Brush > 0) {
+					float2 BrushUv = ((uv - float2(_BrushUvX, _BrushUvY)) * _GridScale) / (_BrushSize * _GridScale * 0.002);
+					fixed4 BrushColor = tex2D(_BrushTex, BrushUv);
+
+					if (BrushUv.x >= 0 && BrushUv.y >= 0 && BrushUv.x <= 1 && BrushUv.y <= 1) {
+
+						half LerpValue = clamp(_BrushSize / 20, 0, 1);
+
+						half From = 0.1f;
+						half To = lerp(0.2f, 0.13f, LerpValue);
+						half Range = lerp(0.015f, 0.008f, LerpValue);
+
+						if (BrushColor.r >= From && BrushColor.r <= To) {
+							half AA = 1;
+
+							if (BrushColor.r < From + Range)
+								AA = (BrushColor.r - From) / Range;
+							else if (BrushColor.r > To - Range)
+								AA = 1 - (BrushColor.r - (To - Range)) / Range;
+
+							AA = clamp(AA, 0, 1);
+
+							Emit += half3(0, 0.3, 1) * (AA * 0.8);
+						}
+
+						if (_BrushPainting <= 0)
+							Emit += half3(0, BrushColor.r * 0.1, BrushColor.r * 0.2);
+						else
+							Emit += half3(0, BrushColor.r * 0.1, BrushColor.r * 0.2) * 0.2;
+					}
+				}
+                return Emit;
+            }
+
+            float4 renderSlope(float4 color){
+                return color;
+            }
+
+            float4 renderTerrainType(float4 color){
+                return color;
+            }
+
+            float4 RenderGrid(sampler2D _GridTex, float2 uv_Control, float Offset, float GridScale) {
+				fixed4 GridColor = tex2D(_GridTex, uv_Control * GridScale + float2(-Offset, Offset));
+				fixed4 GridFinal = fixed4(0, 0, 0, GridColor.a);
+				if (_GridCamDist < 1) {
+					GridFinal.rgb = lerp(GridFinal.rgb, fixed3(1, 1, 1), GridColor.r * lerp(1, 0, _GridCamDist));
+					GridFinal.rgb = lerp(GridFinal.rgb, fixed3(0, 1, 0), GridColor.g * lerp(1, 0, _GridCamDist));
+					GridFinal.rgb = lerp(GridFinal.rgb, fixed3(0, 1, 0), GridColor.b * lerp(0, 1, _GridCamDist));
+				}
+				else {
+					GridFinal.rgb = lerp(GridFinal.rgb, fixed3(0, 1, 0), GridColor.b);
+				}
+
+				GridFinal *= GridColor.a;
+
+				half CenterGridSize = lerp(0.005, 0.015, _GridCamDist) / _GridScale;
+				if (uv_Control.x > 0.5 - CenterGridSize && uv_Control.x < 0.5 + CenterGridSize)
+					GridFinal.rgb = fixed3(0.4, 1, 0);
+				else if (uv_Control.y > 0.5 - CenterGridSize && uv_Control.y < 0.5 + CenterGridSize)
+					GridFinal.rgb = fixed3(0.4, 1, 0);
+
+				return GridFinal;
+			}
+
+            float3 renderGridOverlay(float2 uv){
+                float3 Emit = 0;
+                if (_Grid > 0) {
+					if(_GridType == 1)
+						Emit += RenderGrid(_GridTexture, uv, 0, _GridScale);
+					else if (_GridType == 2)
+						Emit += RenderGrid(_GridTexture, uv, 0.0015, _GridScale / 5.12);
+					else if (_GridType == 3)
+						Emit += RenderGrid(_GridTexture, uv, 0.0015, 16);
+					else
+						Emit += RenderGrid(_GridTexture, uv, 0, _GridScale);
+				}
+                return Emit;
+            }
+
             float4 fragmentShader(VS_OUTPUT inV) : COLOR
             {
                 float shaderNumber = 0;
-                float4 outColor = (1, 0, 1, 1);
+                float4 outColor;
 
                 if (shaderNumber == 0)
                 {
@@ -454,13 +558,16 @@ Shader "FAShaders/TTerrain"
                 {
                     outColor = Terrain001PS(inV, true);
                 }
+                else {
+                    outColor = (1, 0, 1, 1);
+                }
 
                 outColor = renderFog(outColor);
-                outColor = renderOnlyArea(outColor);
-                outColor = renderBrush(outColor);
+                outColor = renderOnlyArea(inV.mPos, outColor);
+                outColor.rgb += renderBrush(inV.mTexWT.xy);
                 outColor = renderSlope(outColor);
                 outColor = renderTerrainType(outColor);
-                outColor = renderGrid(outColor);
+                outColor.rgb += renderGridOverlay(inV.mTexWT.xy);
                 
                 return outColor;
             }
