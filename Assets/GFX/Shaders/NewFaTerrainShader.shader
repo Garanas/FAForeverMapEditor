@@ -50,8 +50,8 @@ Shader "FAShaders/Terrain"
 	    LowerNormalSampler ("Normal Lower (R)", 2D) = "bump" {}
     	UpperAlbedoSampler ("Layer Lower (R)", 2D) = "white" {}
 
-        _SplatAlbedoArray ("Albedo array", 2DArray) = "" {}
-	    _SplatNormalArray ("Normal array", 2DArray) = "" {}
+        _StratumAlbedoArray ("Albedo array", 2DArray) = "" {}
+	    _StratumNormalArray ("Normal array", 2DArray) = "" {}
 
         [MaterialToggle] _HideStratum0("Hide stratum 0", Integer) = 0
 	    [MaterialToggle] _HideStratum1("Hide stratum 1", Integer) = 0
@@ -112,9 +112,6 @@ Shader "FAShaders/Terrain"
 
 			sampler2D _TerrainNormal;
 			sampler2D _TerrainTypeAlbedo;
-	
-			UNITY_DECLARE_TEX2DARRAY(_StratumAlbedoArray);
-			UNITY_DECLARE_TEX2DARRAY(_StratumNormalArray);
 
 			int _HideStratum0;
             int _HideStratum1;
@@ -149,28 +146,28 @@ Shader "FAShaders/Terrain"
             float4 SpecularColor;
             float WaterElevation;
 
-            float4 LowerAlbedoTile;
-            float4 LowerNormalTile;
-            float4 Stratum0AlbedoTile;
-            float4 Stratum1AlbedoTile;
-            float4 Stratum2AlbedoTile;
-            float4 Stratum3AlbedoTile;
-            float4 Stratum4AlbedoTile;
-            float4 Stratum5AlbedoTile;
-            float4 Stratum6AlbedoTile;
-            float4 Stratum7AlbedoTile;
-            float4 Stratum0NormalTile;
-            float4 Stratum1NormalTile;
-            float4 Stratum2NormalTile;
-            float4 Stratum3NormalTile;
-            float4 Stratum4NormalTile;
-            float4 Stratum5NormalTile;
-            float4 Stratum6NormalTile;
-            float4 Stratum7NormalTile;
-            float4 UpperAlbedoTile;
-            float4 UpperNormalTile;
+            float LowerAlbedoTile;
+            float LowerNormalTile;
+            float Stratum0AlbedoTile;
+            float Stratum1AlbedoTile;
+            float Stratum2AlbedoTile;
+            float Stratum3AlbedoTile;
+            float Stratum4AlbedoTile;
+            float Stratum5AlbedoTile;
+            float Stratum6AlbedoTile;
+            float Stratum7AlbedoTile;
+            float Stratum0NormalTile;
+            float Stratum1NormalTile;
+            float Stratum2NormalTile;
+            float Stratum3NormalTile;
+            float Stratum4NormalTile;
+            float Stratum5NormalTile;
+            float Stratum6NormalTile;
+            float Stratum7NormalTile;
+            float UpperAlbedoTile;
+            float UpperNormalTile;
 
-            float4 TerrainScale;
+            float TerrainScale;
 
             sampler2D UtilitySamplerA;
             sampler2D UtilitySamplerB;
@@ -183,7 +180,18 @@ Shader "FAShaders/Terrain"
             sampler2D UpperAlbedoSampler;
             sampler2D LowerNormalSampler;
        
+			UNITY_DECLARE_TEX2DARRAY(_StratumAlbedoArray);
+			UNITY_DECLARE_TEX2DARRAY(_StratumNormalArray);
 
+            float4 StratumAlbedoSampler(int layer, float3 uv) {
+                return UNITY_SAMPLE_TEX2DARRAY(_StratumAlbedoArray, float3(uv.xy, layer));
+            }
+
+            float4 StratumNormalSampler(int layer, float2 uv) {
+                return UNITY_SAMPLE_TEX2DARRAY(_StratumNormalArray, float3(uv, layer));
+            }
+
+            
             typedef float4 position_t;
 
 
@@ -409,11 +417,11 @@ Shader "FAShaders/Terrain"
                 // sample all the textures we'll need
                 float4 mask = saturate(tex2D( UtilitySamplerA, inV.mTexWT * TerrainScale));
 
-                float4 lowerNormal = normalize(tex2D( LowerNormalSampler, inV.mTexWT  * TerrainScale * LowerNormalTile ) * 2 - 1);
-                float4 stratum0Normal = normalize(UNITY_SAMPLE_TEX2DARRAY(_StratumNormalArray, float3(inV.mTexWT.xy * TerrainScale * Stratum0NormalTile, 0)) * 2 - 1);
-                float4 stratum1Normal = normalize(UNITY_SAMPLE_TEX2DARRAY(_StratumNormalArray, float3(inV.mTexWT.xy * TerrainScale * Stratum1NormalTile, 1)) * 2 - 1);
-                float4 stratum2Normal = normalize(UNITY_SAMPLE_TEX2DARRAY(_StratumNormalArray, float3(inV.mTexWT.xy * TerrainScale * Stratum2NormalTile, 2)) * 2 - 1);
-                float4 stratum3Normal = normalize(UNITY_SAMPLE_TEX2DARRAY(_StratumNormalArray, float3(inV.mTexWT.xy * TerrainScale * Stratum3NormalTile, 3)) * 2 - 1);
+                float4 lowerNormal = normalize(tex2D( LowerNormalSampler, inV.mTexWT * TerrainScale * LowerNormalTile ) * 2 - 1);
+                float4 stratum0Normal = normalize(StratumNormalSampler(0, inV.mTexWT * TerrainScale * Stratum0NormalTile) * 2 - 1);
+                float4 stratum1Normal = normalize(StratumNormalSampler(1, inV.mTexWT * TerrainScale * Stratum1NormalTile) * 2 - 1);
+                float4 stratum2Normal = normalize(StratumNormalSampler(2, inV.mTexWT * TerrainScale * Stratum2NormalTile) * 2 - 1);
+                float4 stratum3Normal = normalize(StratumNormalSampler(3, inV.mTexWT * TerrainScale * Stratum3NormalTile) * 2 - 1);
 
                 // blend all normals together
                 float4 normal = lowerNormal;
@@ -429,13 +437,13 @@ Shader "FAShaders/Terrain"
             float4 TerrainPS( VS_OUTPUT inV, uniform bool inShadows ) : COLOR
             {
                 // sample all the textures we'll need
-                float4 mask = saturate(tex2Dproj( UtilitySamplerA, inV.mTexWT  * TerrainScale)* 2 - 1 );
-                float4 upperAlbedo = tex2Dproj( UpperAlbedoSampler, inV.mTexWT  * TerrainScale* UpperAlbedoTile );
-                float4 lowerAlbedo = tex2Dproj( LowerAlbedoSampler, inV.mTexWT  * TerrainScale* LowerAlbedoTile );
-                float4 stratum0Albedo = UNITY_SAMPLE_TEX2DARRAY(_StratumNormalArray, float3(inV.mTexWT.xy * TerrainScale * Stratum0AlbedoTile, 0));
-                float4 stratum1Albedo = UNITY_SAMPLE_TEX2DARRAY(_StratumNormalArray, float3(inV.mTexWT.xy * TerrainScale * Stratum1AlbedoTile, 1));
-                float4 stratum2Albedo = UNITY_SAMPLE_TEX2DARRAY(_StratumNormalArray, float3(inV.mTexWT.xy * TerrainScale * Stratum2AlbedoTile, 2));
-                float4 stratum3Albedo = UNITY_SAMPLE_TEX2DARRAY(_StratumNormalArray, float3(inV.mTexWT.xy * TerrainScale * Stratum3AlbedoTile, 3));
+                float4 mask = saturate(tex2D( UtilitySamplerA, inV.mTexWT * TerrainScale) * 2 - 1);
+                float4 upperAlbedo = tex2D( UpperAlbedoSampler, inV.mTexWT * TerrainScale * UpperAlbedoTile);
+                float4 lowerAlbedo = tex2D( LowerAlbedoSampler, inV.mTexWT * TerrainScale * LowerAlbedoTile);
+                float4 stratum0Albedo = StratumAlbedoSampler(0, inV.mTexWT * TerrainScale * Stratum0AlbedoTile);
+                float4 stratum1Albedo = StratumAlbedoSampler(1, inV.mTexWT * TerrainScale * Stratum1AlbedoTile);
+                float4 stratum2Albedo = StratumAlbedoSampler(2, inV.mTexWT * TerrainScale * Stratum2AlbedoTile);
+                float4 stratum3Albedo = StratumAlbedoSampler(3, inV.mTexWT * TerrainScale * Stratum3AlbedoTile);
 
                 float3 normal = TerrainNormalsPS(inV).xyz*2-1;
 
@@ -448,7 +456,7 @@ Shader "FAShaders/Terrain"
                 albedo.xyz = lerp( albedo.xyz, upperAlbedo.xyz, upperAlbedo.w );
 
                 // get the water depth
-                float waterDepth = tex2Dproj( UtilitySamplerC, inV.mTexWT * TerrainScale).g;
+                float waterDepth = tex2D( UtilitySamplerC, inV.mTexWT * TerrainScale).g;
 
                 // calculate the lit pixel
                 float4 outColor = CalculateLighting( normal, inV.mTexWT.xyz, albedo.xyz, 1-albedo.w, waterDepth, inV.mShadow);
