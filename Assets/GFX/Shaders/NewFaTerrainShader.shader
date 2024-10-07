@@ -190,7 +190,8 @@ Shader "FAShaders/Terrain"
             struct VS_OUTPUT
             {
                 float4 mPos                    : POSITION0;
-                float4 mTexWT                : TEXCOORD1;
+                // These are absolute world coordinates
+                float3 mTexWT                : TEXCOORD1;
                 float4 mTexSS                : TEXCOORD2;
                 float4 mShadow              : TEXCOORD3;
                 float3 mViewDirection        : TEXCOORD4;
@@ -371,7 +372,7 @@ Shader "FAShaders/Terrain"
 
 
 
-            VS_OUTPUT TerrainVS( position_t p : POSITION0, uniform bool shadowed)
+            VS_OUTPUT TerrainVS( position_t p : POSITION0)
             {
                 VS_OUTPUT result;
 
@@ -381,10 +382,13 @@ Shader "FAShaders/Terrain"
                 float4 position = float4(p);
 
                 // calculate output position
-                result.mPos = mul(position, UNITY_MATRIX_VP);
+                result.mPos = UnityObjectToClipPos(position);
 
-                // calculate 0..1 uv based on size of map
-                result.mTexWT = position.xzyw;
+                // Unity uses lower left origin, fa uses upper left, so we need to invert the y axis
+                // and for some ungodly reason we have a scale factor of 10. I don't know where this comes from.
+                result.mTexWT = position.xzy * float3(10, -10, 10);
+                // We also need to move the origin from the bottom corner to the top corner
+                result.mTexWT.y += 1.0 / TerrainScale;
                 // caluclate screen space coordinate for sample a frame buffer of this size
                 result.mTexSS = result.mPos;
                 result.mTexDecal = float4(0,0,0,0);
