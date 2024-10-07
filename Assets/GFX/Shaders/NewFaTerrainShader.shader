@@ -194,6 +194,14 @@ Shader "FAShaders/Terrain"
                 return UNITY_SAMPLE_TEX2DARRAY(_StratumNormalArray, float3(uv, layer));
             }
 
+            float3 TangentToWorldSpace(VS_OUTPUT v, float3 tnormal) {
+                // transform normal from tangent to world space
+                float3 worldNormal;
+                worldNormal.x = dot(v.tspace0, tnormal);
+                worldNormal.y = dot(v.tspace1, tnormal);
+                worldNormal.z = dot(v.tspace2, tnormal);
+                return worldNormal;
+            }
 
             struct VS_OUTPUT
             {
@@ -210,6 +218,45 @@ Shader "FAShaders/Terrain"
                 float4 nearScales           : TEXCOORD7;
                 float4 farScales            : TEXCOORD8;
             };
+
+            // Because the underlying engine is different, the vertex shader has to differ considerably from fa.
+            // Still, we try to set up things in a way that we only have to minimally modify the fa pixel shaders
+            VS_OUTPUT TerrainVS( float4 position : POSITION, float3 normal : NORMAL, float4 tangent : TANGENT)
+            {
+                VS_OUTPUT result;
+
+                result.nearScales = float4(Stratum0AlbedoTile.x, Stratum1AlbedoTile.x, Stratum2AlbedoTile.x, Stratum3AlbedoTile.x);
+                result.farScales =  float4(Stratum0NormalTile.x, Stratum1NormalTile.x, Stratum2NormalTile.x, Stratum3NormalTile.x);
+
+                // calculate output position
+                result.mPos = UnityObjectToClipPos(position);
+
+                // Unity uses lower left origin, fa uses upper left, so we need to invert the y axis
+                // and for some ungodly reason we have a scale factor of 10. I don't know where this comes from.
+                result.mTexWT = position.xzy * float3(10, -10, 10);
+                // We also need to move the origin from the bottom corner to the top corner
+                result.mTexWT.y += 1.0 / TerrainScale;
+                
+                result.mViewDirection = normalize(position.xyz - _WorldSpaceCameraPos.xyz);
+
+                // fill in the tex coordinate for the shadow projection
+                result.mShadow = mul(position, unity_WorldToShadow[0]);
+                result.mShadow.x = ( +result.mShadow.x + result.mShadow.w ) * 0.5;
+                result.mShadow.y = ( -result.mShadow.y + result.mShadow.w ) * 0.5;
+                result.mShadow.z -= 0.01f; // put epsilon in vs to save ps instruction
+
+                half3 worldNormal = UnityObjectToWorldNormal(normal);
+                half3 worldTangent = UnityObjectToWorldDir(tangent.xyz);
+                // compute bitangent from cross product of normal and tangent
+                half tangentSign = tangent.w * unity_WorldTransformParams.w;
+                half3 worldBitangent = cross(worldNormal, worldTangent) * tangentSign;
+                // output the tangent space matrix
+                result.tspace0 = half3(worldTangent.x, worldBitangent.x, worldNormal.x);
+                result.tspace1 = half3(worldTangent.y, worldBitangent.y, worldNormal.y);
+                result.tspace2 = half3(worldTangent.z, worldBitangent.z, worldNormal.z);
+
+                return result;
+            }
 
             float ComputeShadow( float4 vShadowCoord )
             {
@@ -377,55 +424,6 @@ Shader "FAShaders/Terrain"
                 return color;
             }
 
-
-            // Because the underlying engine is different, the vertex shader has to differ considerably from fa.
-            // Still, we try to set up things in a way that we only have to minimally modify the fa pixel shaders
-            VS_OUTPUT TerrainVS( float4 position : POSITION, float3 normal : NORMAL, float4 tangent : TANGENT)
-            {
-                VS_OUTPUT result;
-
-                result.nearScales = float4(Stratum0AlbedoTile.x, Stratum1AlbedoTile.x, Stratum2AlbedoTile.x, Stratum3AlbedoTile.x);
-                result.farScales =  float4(Stratum0NormalTile.x, Stratum1NormalTile.x, Stratum2NormalTile.x, Stratum3NormalTile.x);
-
-                // calculate output position
-                result.mPos = UnityObjectToClipPos(position);
-
-                // Unity uses lower left origin, fa uses upper left, so we need to invert the y axis
-                // and for some ungodly reason we have a scale factor of 10. I don't know where this comes from.
-                result.mTexWT = position.xzy * float3(10, -10, 10);
-                // We also need to move the origin from the bottom corner to the top corner
-                result.mTexWT.y += 1.0 / TerrainScale;
-                
-                result.mViewDirection = normalize(position.xyz - _WorldSpaceCameraPos.xyz);
-
-                // fill in the tex coordinate for the shadow projection
-                result.mShadow = mul(position, unity_WorldToShadow[0]);
-                result.mShadow.x = ( +result.mShadow.x + result.mShadow.w ) * 0.5;
-                result.mShadow.y = ( -result.mShadow.y + result.mShadow.w ) * 0.5;
-                result.mShadow.z -= 0.01f; // put epsilon in vs to save ps instruction
-
-                half3 worldNormal = UnityObjectToWorldNormal(normal);
-                half3 worldTangent = UnityObjectToWorldDir(tangent.xyz);
-                // compute bitangent from cross product of normal and tangent
-                half tangentSign = tangent.w * unity_WorldTransformParams.w;
-                half3 worldBitangent = cross(worldNormal, worldTangent) * tangentSign;
-                // output the tangent space matrix
-                result.tspace0 = half3(worldTangent.x, worldBitangent.x, worldNormal.x);
-                result.tspace1 = half3(worldTangent.y, worldBitangent.y, worldNormal.y);
-                result.tspace2 = half3(worldTangent.z, worldBitangent.z, worldNormal.z);
-
-                return result;
-            }
-
-            float3 tangentToWorldSpace(VS_OUTPUT v, float3 tnormal) {
-                // transform normal from tangent to world space
-                float3 worldNormal;
-                worldNormal.x = dot(v.tspace0, tnormal);
-                worldNormal.y = dot(v.tspace1, tnormal);
-                worldNormal.z = dot(v.tspace2, tnormal);
-                return worldNormal;
-            }
-
             float4 TerrainNormalsPS( VS_OUTPUT inV ) : COLOR
             {
                 // sample all the textures we'll need
@@ -460,7 +458,7 @@ Shader "FAShaders/Terrain"
                 float4 stratum3Albedo = StratumAlbedoSampler(3, inV.mTexWT * TerrainScale * Stratum3AlbedoTile);
 
                 float3 normal = TerrainNormalsPS(inV).xyz*2-1;
-                normal = tangentToWorldSpace(inV, normal);
+                normal = TangentToWorldSpace(inV, normal);
 
                 // blend all albedos together
                 float4 albedo = lowerAlbedo;
