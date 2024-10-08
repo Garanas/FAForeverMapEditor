@@ -91,14 +91,12 @@ Shader "FAShaders/Terrain"
     }
     SubShader
     {
-        Tags { "RenderType"="Opaque" }
 
-        Pass
-        {
             CGPROGRAM
-            #pragma vertex TerrainVS
-            #pragma fragment fragmentShader
-            #pragma target 3.5
+			#pragma surface surf SimpleLambert vertex:TerrainVS exclude_path:forward nometa
+            #pragma multi_compile_fog
+			#pragma target 3.5
+			#include "Assets/GFX/Shaders/SimpleLambert.cginc"
 
             // include file that contains UnityObjectToWorldNormal helper function
             #include "UnityCG.cginc"
@@ -181,7 +179,9 @@ Shader "FAShaders/Terrain"
 			UNITY_DECLARE_TEX2DARRAY(_StratumAlbedoArray);
 			UNITY_DECLARE_TEX2DARRAY(_StratumNormalArray);
 
-            struct VS_OUTPUT
+
+            // This struct has to be named 'Input'. Changing it to VS_OUTPUT does not compile.
+            struct Input
             {
                 float4 mPos                    : POSITION0;
                 // These are absolute world coordinates
@@ -204,7 +204,7 @@ Shader "FAShaders/Terrain"
                 return UNITY_SAMPLE_TEX2DARRAY(_StratumNormalArray, float3(uv, layer));
             }
 
-            float3 TangentToWorldSpace(VS_OUTPUT v, float3 tnormal) {
+            float3 TangentToWorldSpace(Input v, float3 tnormal) {
                 // transform normal from tangent to world space
                 float3 worldNormal;
                 worldNormal.x = dot(v.tspace0, tnormal);
@@ -215,35 +215,31 @@ Shader "FAShaders/Terrain"
 
             // Because the underlying engine is different, the vertex shader has to differ considerably from fa.
             // Still, we try to set up things in a way that we only have to minimally modify the fa pixel shaders
-            VS_OUTPUT TerrainVS( float4 position : POSITION, float3 normal : NORMAL, float4 tangent : TANGENT)
+            void TerrainVS(inout appdata_full v, out Input result)
             {
-                VS_OUTPUT result;
-
                 result.nearScales = float4(Stratum0AlbedoTile.x, Stratum1AlbedoTile.x, Stratum2AlbedoTile.x, Stratum3AlbedoTile.x);
                 result.farScales =  float4(Stratum0NormalTile.x, Stratum1NormalTile.x, Stratum2NormalTile.x, Stratum3NormalTile.x);
 
                 // calculate output position
-                result.mPos = UnityObjectToClipPos(position);
+                result.mPos = UnityObjectToClipPos(v.vertex);
 
                 // Unity uses lower left origin, fa uses upper left, so we need to invert the y axis
                 // and for some ungodly reason we have a scale factor of 10. I don't know where this comes from.
-                result.mTexWT = position.xzy * float3(10, -10, 10);
+                result.mTexWT = v.vertex.xzy * float3(10, -10, 10);
                 // We also need to move the origin from the bottom corner to the top corner
                 result.mTexWT.y += 1.0 / TerrainScale;
                 
-                result.mViewDirection = normalize(position.xyz - _WorldSpaceCameraPos.xyz);
+                result.mViewDirection = normalize(v.vertex.xyz - _WorldSpaceCameraPos.xyz);
 
-                half3 worldNormal = UnityObjectToWorldNormal(normal);
-                half3 worldTangent = UnityObjectToWorldDir(tangent.xyz);
+                half3 worldNormal = UnityObjectToWorldNormal(v.normal);
+                half3 worldTangent = UnityObjectToWorldDir(v.tangent.xyz);
                 // compute bitangent from cross product of normal and tangent
-                half tangentSign = tangent.w * unity_WorldTransformParams.w;
+                half tangentSign = v.tangent.w * unity_WorldTransformParams.w;
                 half3 worldBitangent = cross(worldNormal, worldTangent) * tangentSign;
                 // output the tangent space matrix
                 result.tspace0 = half3(worldTangent.x, worldBitangent.x, worldNormal.x);
                 result.tspace1 = half3(worldTangent.y, worldBitangent.y, worldNormal.y);
                 result.tspace2 = half3(worldTangent.z, worldBitangent.z, worldNormal.z);
-
-                return result;
             }
 
             bool IsExperimentalShader() {
@@ -358,7 +354,7 @@ Shader "FAShaders/Terrain"
                 return gs1 * gs2;
             }
 
-            float3 PBR(VS_OUTPUT inV, float4 position, float3 albedo, float3 n, float roughness, float waterDepth) {
+            float3 PBR(Input inV, float4 position, float3 albedo, float3 n, float roughness, float waterDepth) {
                 // See https://blog.selfshadow.com/publications/s2013-shading-course/
 
                 float shadow = tex2D(UpperAlbedoSampler, position.xy).w; // 1 where sun is, 0 where shadow is
@@ -404,7 +400,7 @@ Shader "FAShaders/Terrain"
                 return color;
             }
 
-            float4 TerrainNormalsPS( VS_OUTPUT inV ) : COLOR
+            float4 TerrainNormalsPS( Input inV )
             {
                 // sample all the textures we'll need
                 float4 mask = saturate(tex2D( UtilitySamplerA, inV.mTexWT * TerrainScale));
@@ -426,7 +422,7 @@ Shader "FAShaders/Terrain"
                 return float4( (normal.xyz * 0.5 + 0.5) , normal.w);
             }
 
-            float4 TerrainPS( VS_OUTPUT inV ) : COLOR
+            float4 TerrainPS( Input inV )
             {
                 // sample all the textures we'll need
                 float4 mask = saturate(tex2D( UtilitySamplerA, inV.mTexWT * TerrainScale) * 2 - 1);
@@ -561,7 +557,7 @@ Shader "FAShaders/Terrain"
                 return Emit;
             }
 
-            float4 fragmentShader(VS_OUTPUT inV) : COLOR
+            void surf(Input inV, inout SurfaceOutput o)
             {
                 float shaderNumber = 0;
                 float4 outColor;
@@ -589,9 +585,9 @@ Shader "FAShaders/Terrain"
                 // outColor = renderTerrainType(outColor);
                 // outColor.rgb += renderGridOverlay(inV.mTexWT.xy);
                 
-                return outColor;
+                o.Albedo = outColor.rgb;
+                o.Alpha = outColor.a;
             }
             ENDCG
-        }
     }
 }
