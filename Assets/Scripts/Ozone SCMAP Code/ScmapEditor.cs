@@ -99,13 +99,12 @@ public partial class ScmapEditor : MonoBehaviour
 		RenderSettings.fogStartDistance = map.FogStart * 4f;
 		RenderSettings.fogEndDistance = map.FogEnd * 4f;
 
-
-		Shader.SetGlobalFloat("LightingMultiplier", map.LightingMultiplier);
-		Shader.SetGlobalColor("SunColor", new Color(map.SunColor.x * 0.5f, map.SunColor.y * 0.5f, map.SunColor.z * 0.5f, 1));
-		Shader.SetGlobalColor("SunAmbience", new Color(map.SunAmbience.x * 0.5f, map.SunAmbience.y * 0.5f, map.SunAmbience.z * 0.5f, 1));
-		Shader.SetGlobalColor("ShadowFillColor", new Color(map.ShadowFillColor.x * 0.5f, map.ShadowFillColor.y * 0.5f, map.ShadowFillColor.z * 0.5f, 1));
-
-		Shader.SetGlobalColor("SpecularColor", new Color(map.SpecularColor.x * 0.5f, map.SpecularColor.y * 0.5f, map.SpecularColor.z * 0.5f, map.SpecularColor.w * 0.5f));
+		TerrainMaterial.SetVector("ShadowFillColor", map.ShadowFillColor);
+		TerrainMaterial.SetFloat("LightingMultiplier", map.LightingMultiplier);
+		TerrainMaterial.SetVector("SunDirection", new Vector3(map.SunDirection.x, map.SunDirection.y, -map.SunDirection.z));
+		TerrainMaterial.SetVector("SunAmbience", map.SunAmbience);
+		TerrainMaterial.SetVector("SunColor", map.SunColor);
+		TerrainMaterial.SetVector("SpecularColor", map.SpecularColor);
 	}
 
 
