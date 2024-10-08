@@ -138,9 +138,6 @@ Shader "FAShaders/Terrain"
 			uniform int _Area;
 			uniform half4 _AreaRect;
 
-            int ShadowsEnabled;
-            float ShadowSize;
-
             float3 ShadowFillColor;
             float LightingMultiplier;
             float3 SunDirection;
@@ -177,8 +174,6 @@ Shader "FAShaders/Terrain"
             sampler2D UtilitySamplerC;
             sampler1D WaterRampSampler;
 
-            UNITY_DECLARE_SHADOWMAP(ShadowSampler);
-
             sampler2D LowerAlbedoSampler;
             sampler2D UpperAlbedoSampler;
             sampler2D LowerNormalSampler;
@@ -196,10 +191,9 @@ Shader "FAShaders/Terrain"
                 half3 tspace0 : TEXCOORD2; // tangent.x, bitangent.x, normal.x
                 half3 tspace1 : TEXCOORD3; // tangent.y, bitangent.y, normal.y
                 half3 tspace2 : TEXCOORD4; // tangent.z, bitangent.z, normal.z
-                float4 mShadow              : TEXCOORD5;
-                float3 mViewDirection        : TEXCOORD6;
-                float4 nearScales           : TEXCOORD7;
-                float4 farScales            : TEXCOORD8;
+                float3 mViewDirection        : TEXCOORD5;
+                float4 nearScales           : TEXCOORD6;
+                float4 farScales            : TEXCOORD7;
             };
 
             float4 StratumAlbedoSampler(int layer, float3 uv) {
@@ -239,12 +233,6 @@ Shader "FAShaders/Terrain"
                 
                 result.mViewDirection = normalize(position.xyz - _WorldSpaceCameraPos.xyz);
 
-                // fill in the tex coordinate for the shadow projection
-                result.mShadow = mul(position, unity_WorldToShadow[0]);
-                result.mShadow.x = ( +result.mShadow.x + result.mShadow.w ) * 0.5;
-                result.mShadow.y = ( -result.mShadow.y + result.mShadow.w ) * 0.5;
-                result.mShadow.z -= 0.01f; // put epsilon in vs to save ps instruction
-
                 half3 worldNormal = UnityObjectToWorldNormal(normal);
                 half3 worldTangent = UnityObjectToWorldDir(tangent.xyz);
                 // compute bitangent from cross product of normal and tangent
@@ -256,12 +244,6 @@ Shader "FAShaders/Terrain"
                 result.tspace2 = half3(worldTangent.z, worldBitangent.z, worldNormal.z);
 
                 return result;
-            }
-
-            float ComputeShadow( float4 vShadowCoord )
-            {
-                vShadowCoord.xy /= vShadowCoord.w;
-                return UNITY_SAMPLE_SHADOW(ShadowSampler, vShadowCoord);
             }
 
             bool IsExperimentalShader() {
@@ -302,15 +284,17 @@ Shader "FAShaders/Terrain"
                 return color;
             }
 
-            float4 CalculateLighting( float3 inNormal, float3 worldTerrain, float3 inAlbedo, float specAmount, float waterDepth, float4 inShadow)
+            float4 CalculateLighting( float3 inNormal, float3 worldTerrain, float3 inAlbedo, float specAmount, float waterDepth)
             {
                 float4 color = float4( 0, 0, 0, 0 );
 
-                float shadow = ComputeShadow( inShadow );
+                // The shadow map in the game only stores shadows from objects,
+                // not from the terrain, so we can do without it.
+                float shadow = 1;
                 if (IsExperimentalShader()) {
                     float3 position = TerrainScale * worldTerrain;
                     float mapShadow = tex2D(UpperAlbedoSampler, position.xy).w;
-                    shadow = shadow * mapShadow;
+                    shadow = mapShadow;
                 }
 
                 // calculate some specular
@@ -377,11 +361,7 @@ Shader "FAShaders/Terrain"
             float3 PBR(VS_OUTPUT inV, float4 position, float3 albedo, float3 n, float roughness, float waterDepth) {
                 // See https://blog.selfshadow.com/publications/s2013-shading-course/
 
-                float shadow = 1;
-                float mapShadow = tex2D(UpperAlbedoSampler, position.xy).w; // 1 where sun is, 0 where shadow is
-                shadow = UNITY_SAMPLE_SHADOW(ShadowSampler, float3(inV.mShadow.xy, 0));
-                shadow *= mapShadow;
-
+                float shadow = tex2D(UpperAlbedoSampler, position.xy).w; // 1 where sun is, 0 where shadow is
 
                 float facingSpecular = 0.04;
                 // using only the texture looks bad when zoomed in, using only the mesh 
@@ -446,7 +426,7 @@ Shader "FAShaders/Terrain"
                 return float4( (normal.xyz * 0.5 + 0.5) , normal.w);
             }
 
-            float4 TerrainPS( VS_OUTPUT inV, uniform bool inShadows ) : COLOR
+            float4 TerrainPS( VS_OUTPUT inV ) : COLOR
             {
                 // sample all the textures we'll need
                 float4 mask = saturate(tex2D( UtilitySamplerA, inV.mTexWT * TerrainScale) * 2 - 1);
@@ -472,7 +452,7 @@ Shader "FAShaders/Terrain"
                 float waterDepth = tex2D( UtilitySamplerC, inV.mTexWT * TerrainScale).g;
 
                 // calculate the lit pixel
-                float4 outColor = CalculateLighting( normal, inV.mTexWT.xyz, albedo.xyz, 1-albedo.w, waterDepth, inV.mShadow);
+                float4 outColor = CalculateLighting( normal, inV.mTexWT.xyz, albedo.xyz, 1-albedo.w, waterDepth);
                 
                 return outColor;
             }
@@ -588,15 +568,15 @@ Shader "FAShaders/Terrain"
 
                 if (shaderNumber == 0)
                 {
-                    outColor = TerrainPS(inV, true);
+                    outColor = TerrainPS(inV);
                 }
                 // else if (shaderNumber == 1)
                 // {
-                //     outColor = TerrainXP(inV, true);
+                //     outColor = TerrainXP(inV);
                 // }
                 // else if (shaderNumber == 2)
                 // {
-                //     outColor = Terrain001PS(inV, true);
+                //     outColor = Terrain001PS(inV);
                 // }
                 else {
                     outColor = float4(1, 0, 1, 1);
