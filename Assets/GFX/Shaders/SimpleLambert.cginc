@@ -1,53 +1,11 @@
-﻿uniform half _LightingMultiplier;
-uniform fixed4 _SunColor;
-uniform fixed4 _SunAmbience;
-uniform fixed4 _ShadowColor;
-uniform half _SpecularAmmount;
-
-/*
-float4 LightingSimpleLambertLight  (SurfaceOutput s, float3 lightDir, half atten) {
-	float NdotL = dot (lightDir, s.Normal);
-			              
-	float4 c;
-	float3 spec = float3(0,0,0);
-
-	float3 light =  _SunColor.rgb * 2 * saturate(NdotL) * atten + _SunAmbience.rgb * 2;
-	light = _LightingMultiplier * light + _ShadowColor.rgb * 2 * (1 - light);
-
-
-	c.rgb = (s.Albedo + spec) * light;
-	c.a = s.Alpha;
-	return c;
-}*/
-
-
+﻿
 			
-inline float4 LightingSimpleLambertLight  (SurfaceOutput s, UnityLight light)
-{
-	// All calculations have already happened
-    float4 c;
-	c.rgb = s.Albedo;
-	c.a = s.Alpha;
-	return c;
-}
-
-inline fixed4 LightingSimpleLambert_PrePass (SurfaceOutput s, half4 light)
-{
-	fixed4 c;
-	c.rgb = s.Albedo * light.rgb;
-	c.rgb = s.Albedo;
-	c.a = s.Alpha;
-	return c;
-}
 
 inline fixed4 LightingSimpleLambert (SurfaceOutput s, UnityGI gi)
 {
 	fixed4 c;
-	c = LightingSimpleLambertLight (s, gi.light);
-
-	//#ifdef UNITY_LIGHT_FUNCTION_APPLY_INDIRECT
-	//	c.rgb += s.Albedo * gi.indirect.diffuse;
-	//#endif
+    c.rgb = s.Albedo;
+    c.a = s.Alpha;
 
 	return c;
 }
