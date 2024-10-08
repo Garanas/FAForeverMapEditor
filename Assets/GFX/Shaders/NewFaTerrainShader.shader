@@ -186,6 +186,22 @@ Shader "FAShaders/Terrain"
 			UNITY_DECLARE_TEX2DARRAY(_StratumAlbedoArray);
 			UNITY_DECLARE_TEX2DARRAY(_StratumNormalArray);
 
+            struct VS_OUTPUT
+            {
+                float4 mPos                    : POSITION0;
+                // These are absolute world coordinates
+                float3 mTexWT                : TEXCOORD1;
+                // these three vectors will hold a 3x3 rotation matrix
+                // that transforms from tangent to world space
+                half3 tspace0 : TEXCOORD2; // tangent.x, bitangent.x, normal.x
+                half3 tspace1 : TEXCOORD3; // tangent.y, bitangent.y, normal.y
+                half3 tspace2 : TEXCOORD4; // tangent.z, bitangent.z, normal.z
+                float4 mShadow              : TEXCOORD5;
+                float3 mViewDirection        : TEXCOORD6;
+                float4 nearScales           : TEXCOORD7;
+                float4 farScales            : TEXCOORD8;
+            };
+
             float4 StratumAlbedoSampler(int layer, float3 uv) {
                 return UNITY_SAMPLE_TEX2DARRAY(_StratumAlbedoArray, float3(uv.xy, layer));
             }
@@ -202,22 +218,6 @@ Shader "FAShaders/Terrain"
                 worldNormal.z = dot(v.tspace2, tnormal);
                 return worldNormal;
             }
-
-            struct VS_OUTPUT
-            {
-                float4 mPos                    : POSITION0;
-                // These are absolute world coordinates
-                float3 mTexWT                : TEXCOORD1;
-                // these three vectors will hold a 3x3 rotation matrix
-                // that transforms from tangent to world space
-                half3 tspace0 : TEXCOORD2; // tangent.x, bitangent.x, normal.x
-                half3 tspace1 : TEXCOORD3; // tangent.y, bitangent.y, normal.y
-                half3 tspace2 : TEXCOORD4; // tangent.z, bitangent.z, normal.z
-                float4 mShadow              : TEXCOORD5;
-                float3 mViewDirection        : TEXCOORD6;
-                float4 nearScales           : TEXCOORD7;
-                float4 farScales            : TEXCOORD8;
-            };
 
             // Because the underlying engine is different, the vertex shader has to differ considerably from fa.
             // Still, we try to set up things in a way that we only have to minimally modify the fa pixel shaders
