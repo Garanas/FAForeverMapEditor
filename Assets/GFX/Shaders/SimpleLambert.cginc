@@ -1,11 +1,27 @@
 ﻿
+
 			
+inline float4 LightingSimpleLambertLight  (SurfaceOutput s, UnityLight light)
+{
+	// All calculations have already happened
+    float4 c;
+	c.rgb = s.Albedo;
+	c.a = s.Alpha;
+	return c;
+}
+
+inline fixed4 LightingSimpleLambert_PrePass (SurfaceOutput s, half4 light)
+{
+	fixed4 c;
+    c.rgb = s.Albedo;
+	c.a = s.Alpha;
+	return c;
+}
 
 inline fixed4 LightingSimpleLambert (SurfaceOutput s, UnityGI gi)
 {
 	fixed4 c;
-    c.rgb = s.Albedo;
-    c.a = s.Alpha;
+	c = LightingSimpleLambertLight (s, gi.light);
 
 	return c;
 }
@@ -21,7 +37,7 @@ inline half4 LightingSimpleLambert_Deferred (SurfaceOutput s, UnityGI gi, out ha
 
 	UnityStandardDataToGbuffer(data, outGBuffer0, outGBuffer1, outGBuffer2);
 
-	half4 emission = half4(s.Emission, 1);
+    half4 emission = half4(s.Emission, 1);
 
 	//#ifdef UNITY_LIGHT_FUNCTION_APPLY_INDIRECT
 	//	emission.rgb += s.Albedo * gi.indirect.diffuse;
