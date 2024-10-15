@@ -83,47 +83,11 @@ half4 CalculateLight (unity_v2f_deferred i)
    //  light.ndotl = 1;
 
     //half4 res = UNITY_BRDF_PBS (data.diffuseColor, data.specularColor, oneMinusReflectivity, data.smoothness, data.normalWorld, -eyeVec, light, ind);
-	 float4 c;
-	 float3 spec = float3(0,0,0);
-	 float AlbedoAlpha = gbuffer1.a;
-	 fixed3 SunColor = _SunColor.rgb * 2;
-	 fixed3 SunAmbience = _SunAmbience.rgb * 2;
-	 fixed3 ShadowFillColor = _ShadowColor.rgb * 2;
-	 fixed4 SpecularColor = _SpecularColor.rgba * 2;
+	float4 c;
+    float AlbedoAlpha = gbuffer1.a;
 
-	if(_TTerrainXP <= 0){ // Normal lighting
-		float NdotL = dot (light.dir, data.normalWorld);
-
-		float3 R = light.dir - 2.0f * NdotL * data.normalWorld;
-		float specular = pow( saturate( dot(R, eyeVec) ), 8) * SpecularColor.r * AlbedoAlpha * 2;
-		float3 lighting = SunColor * saturate(NdotL) * atten + SunAmbience + specular;
-		lighting = _LightingMultiplier * lighting + ShadowFillColor * (1 - lighting);
-		c.rgb = (data.diffuseColor + spec) * lighting;
-		c.a = 1;
-	}
-	else{ // XP lighting
-
-		float NdotL = dot (light.dir, data.normalWorld);
-
-		float3 r = reflect(eyeVec, data.normalWorld);
-
-		float3 specular = (pow(saturate(dot(r, light.dir)), 80) * AlbedoAlpha * SpecularColor.a) * SpecularColor.rgb;
-
-		float dotSunNormal = dot(light.dir, data.normalWorld);
-
-		//float shadow = tex2D(ShadowSampler, pixel.mShadow.xy).g;
-		float3 light = SunColor * saturate(dotSunNormal) * atten + SunAmbience;
-		light = _LightingMultiplier * light + ShadowFillColor * (1 - light);
-		c.rgb = light * (data.diffuseColor + specular.rgb);
-
-		//float waterDepth = tex2Dproj(UtilitySamplerC, pixel.mTexWT*TerrainScale).g;
-		//float4 water = tex1D(WaterRampSampler, waterDepth);
-		//c.rgb = lerp(albedo.rgb, water.rgb, water.a);
-
-	}
-
-
-	//half4 res = data.diffuseColor;
+	c.rgb = data.diffuseColor;
+	c.a = 1;
 
     return c;
 }
