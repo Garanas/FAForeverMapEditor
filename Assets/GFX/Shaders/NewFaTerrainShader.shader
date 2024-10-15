@@ -254,7 +254,7 @@ Shader "FAShaders/Terrain"
 
             float ComputeShadow( float4 vShadowCoord )
             {
-                return UNITY_SAMPLE_SHADOW(ShadowSampler, vShadowCoord.xyz);
+                return 1;
             }
 
             bool IsExperimentalShader() {
