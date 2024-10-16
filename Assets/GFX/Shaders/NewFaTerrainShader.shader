@@ -178,6 +178,8 @@ Shader "FAShaders/Terrain"
 			UNITY_DECLARE_TEX2DARRAY(_StratumAlbedoArray);
 			UNITY_DECLARE_TEX2DARRAY(_StratumNormalArray);
 
+            uniform half4 unity_FogStart;
+			uniform half4 unity_FogEnd;
 
             // This struct has to be named 'Input'. Changing it to VS_OUTPUT does not compile.
             struct Input
@@ -195,6 +197,7 @@ Shader "FAShaders/Terrain"
                 float4 farScales            : TEXCOORD7;
 
                 float SlopeLerp;
+                half fog;
             };
 
             float4 StratumAlbedoSampler(int layer, float3 uv) {
@@ -243,6 +246,10 @@ Shader "FAShaders/Terrain"
                 result.tspace2 = half3(worldTangent.z, worldBitangent.z, worldNormal.z);
 
                 result.SlopeLerp = dot(v.normal, half3(0,1,0));
+                float pos = length(UnityObjectToViewPos(v.vertex).xyz);
+				float diff = unity_FogEnd.x - unity_FogStart.x;
+			    float invDiff = 1.0f / diff;
+		    	result.fog = saturate((unity_FogEnd.x - pos) * invDiff);
             }
 
             float4 GetWaterColor(float waterDepth)
@@ -535,12 +542,14 @@ Shader "FAShaders/Terrain"
                     o.Albedo = float3(1, 0, 1);
                 }
 
-                // outColor = renderFog(outColor);
                 o.Emission = renderBrush(inV.mTexWT.xy * TerrainScale);
                 o.Emission += renderSlope(inV);
                 o.Albedo = renderTerrainType(o.Albedo, inV.mTexWT.xy * TerrainScale);
                 o.Emission += renderGridOverlay(inV.mTexWT.xy * TerrainScale);
-                
+
+                // fog
+                o.Albedo = lerp(0, o.Albedo, inV.fog);
+				o.Emission = lerp(unity_FogColor, o.Emission, inV.fog);
             }
             ENDCG
     }
