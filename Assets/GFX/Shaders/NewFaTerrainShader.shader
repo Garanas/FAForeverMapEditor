@@ -377,10 +377,6 @@ Shader "FAShaders/Terrain"
                 return albedo;
             }
 
-            float4 renderFog(float4 color){
-                return color;
-            }
-
             float3 renderBrush(float2 uv){
                 float3 Emit = 0;
                 if (_Brush > 0) {
