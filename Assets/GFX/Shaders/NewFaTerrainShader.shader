@@ -413,7 +413,7 @@ Shader "FAShaders/Terrain"
                 return Emit;
             }
 
-            void surf(Input inV, inout SurfaceOutputStandardSpecular o)
+            void surf(Input inV, inout CustomSurfaceOutput o)
             {
                 float shaderNumber = 0;
                 float4 outColor;
@@ -422,16 +422,16 @@ Shader "FAShaders/Terrain"
                 {
                     outColor = TerrainPS(inV);
                     o.Albedo = outColor.rgb;
-                    o.Alpha = outColor.a; // for specularity
-                    o.Normal = TerrainNormalsPS(inV).xyz*2-1;
+                    o.Roughness = outColor.a; // for specularity
+                    float3 normal = TangentToWorldSpace(inV, TerrainNormalsPS(inV).xyz*2-1);
+                    o.wNormal = normalize(normal);
 
                     float4 waterColor = GetWaterColor(tex2D(UtilitySamplerC, inV.mTexWT * TerrainScale).g);
-                    o.Specular = waterColor.rgb;
-                    o.Smoothness = waterColor.a; // water absorption
+                    o.WaterColor = waterColor.rgb;
+                    o.WaterAbsorption = waterColor.a;
 
                     float3 position = TerrainScale * inV.mTexWT.xyz;
-                    float mapShadow = tex2D(UpperAlbedoSampler, position.xy).w;
-                    o.Occlusion = mapShadow;
+                    o.MapShadow = tex2D(UpperAlbedoSampler, position.xy).w;
                 }
                 // else if (shaderNumber == 1)
                 // {

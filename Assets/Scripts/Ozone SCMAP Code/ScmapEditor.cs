@@ -100,7 +100,7 @@ public partial class ScmapEditor : MonoBehaviour
 
         Shader.SetGlobalVector("ShadowFillColor", map.ShadowFillColor);
         Shader.SetGlobalFloat("LightingMultiplier", map.LightingMultiplier);
-        Shader.SetGlobalVector("SunDirection", new Vector3(map.SunDirection.x, map.SunDirection.y, -map.SunDirection.z));
+        Shader.SetGlobalVector("SunDirection", map.SunDirection);
         Shader.SetGlobalVector("SunAmbience", map.SunAmbience);
         Shader.SetGlobalVector("SunColor", map.SunColor);
         Shader.SetGlobalVector("SpecularColor", map.SpecularColor);

@@ -1,24 +1,36 @@
-﻿// for SurfaceOutputStandardSpecular
-#include "UnityPBSLighting.cginc"
-
+﻿
+struct CustomSurfaceOutput
+{
+    fixed3 Albedo;
+    fixed3 WaterColor;
+    float3 wNormal; // world space normal, we use this one to prevent the automatic tangent to world space conversion
+    half3 Emission; // for overlays
+    half WaterAbsorption; // how much the WaterColor gets applied
+    half MapShadow; // manual terrain shadow that is defined by input texture
+    half Roughness; // also used as alpha for transparencies
+    
+    // these only exist to make the surface shader compile and are unused
+    float3 Normal;
+    fixed Alpha;
+};
 			
-inline float4 LightingSimpleLambertLight(SurfaceOutputStandardSpecular s, UnityLight light)
+inline float4 LightingSimpleLambertLight(CustomSurfaceOutput s, UnityLight light)
 {
     float4 c;
 	c.rgb = s.Albedo;
-	c.a = s.Alpha;
+    c.a = s.Roughness;
 	return c;
 }
 
-inline fixed4 LightingSimpleLambert_PrePass(SurfaceOutputStandardSpecular s, half4 light)
+inline fixed4 LightingSimpleLambert_PrePass(CustomSurfaceOutput s, half4 light)
 {
 	fixed4 c;
     c.rgb = s.Albedo;
-	c.a = s.Alpha;
+    c.a = s.Roughness;
 	return c;
 }
 
-inline fixed4 LightingSimpleLambert(SurfaceOutputStandardSpecular s, UnityGI gi)
+inline fixed4 LightingSimpleLambert(CustomSurfaceOutput s, UnityGI gi)
 {
 	fixed4 c;
 	c = LightingSimpleLambertLight (s, gi.light);
@@ -26,29 +38,22 @@ inline fixed4 LightingSimpleLambert(SurfaceOutputStandardSpecular s, UnityGI gi)
 	return c;
 }
 
-inline half4 LightingSimpleLambert_Deferred(SurfaceOutputStandardSpecular s, UnityGI gi, out half4 outGBuffer0, out half4 outGBuffer1, out half4 outGBuffer2)
+inline half4 LightingSimpleLambert_Deferred(CustomSurfaceOutput s, UnityGI gi, out half4 outGBuffer0, out half4 outGBuffer1, out half4 outGBuffer2)
 {
-	UnityStandardData data;
-	data.diffuseColor   = s.Albedo;
-	data.occlusion      = s.Alpha;
-    data.specularColor  = s.Specular;
-    data.smoothness     = s.Smoothness;
-	data.normalWorld    = s.Normal;
+    outGBuffer0 = half4(s.Albedo, s.Roughness);
 
-    outGBuffer0 = half4(data.diffuseColor, data.occlusion);
+    outGBuffer1 = half4(s.WaterColor, s.WaterAbsorption);
 
-    outGBuffer1 = half4(data.specularColor, data.smoothness);
-
-    outGBuffer2 = half4(data.normalWorld * 0.5f + 0.5f, s.Occlusion);
+    outGBuffer2 = half4(s.wNormal * 0.5f + 0.5f, s.MapShadow);
 
     half4 emission = half4(s.Emission, 1);
 	return emission;
 }
 
 inline void LightingSimpleLambert_GI (
-		SurfaceOutputStandardSpecular s,
+		CustomSurfaceOutput s,
 		UnityGIInput data,
 		inout UnityGI gi)
 	{
-		gi = UnityGlobalIllumination (data, 1.0, s.Normal);
+		gi = UnityGlobalIllumination (data, 1.0, s.wNormal);
 	}

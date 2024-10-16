@@ -106,6 +106,10 @@ half4 CalculateLight (unity_v2f_deferred i)
 
 	color.rgb = albedo;
 
+    worldNormal = worldNormal * 2 - 1;
+    // The game is using a different coordinate system, so we need to correct for that
+    worldNormal.z = worldNormal.z * -1;
+
     color.rgb = CalculateLighting(worldNormal, eyeVec, albedo, 1-albedoAlpha, atten);
 
     if (_TTerrainXP > 0) {
