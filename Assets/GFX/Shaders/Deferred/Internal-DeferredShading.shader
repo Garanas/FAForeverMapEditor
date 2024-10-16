@@ -51,6 +51,7 @@ uniform fixed4 SunDirection;
 uniform fixed4 SunAmbience;
 uniform fixed4 ShadowFillColor;
 uniform fixed4 SpecularColor;
+uniform float WaterElevation;
 
 
 
@@ -82,6 +83,86 @@ float4 CalculateXPLighting( float3 normal, float3 viewDirection, float4 albedo, 
     albedo.rgb = light * ( albedo.rgb + specular.rgb );
 
     return albedo;
+}
+
+float3 FresnelSchlick(float hDotN, float3 F0)
+{
+    return F0 + (1.0 - F0) * pow(1.0 - hDotN, 5.0);
+}
+
+float NormalDistribution(float3 n, float3 h, float roughness)
+{
+    float a2 = roughness*roughness;
+    float nDotH = max(dot(n, h), 0.0);
+    float nDotH2 = nDotH*nDotH;
+
+    float num = a2;
+    float denom = nDotH2 * (a2 - 1.0) + 1.0;
+    denom = 3.14159265359 * denom * denom;
+
+    return num / denom;
+}
+
+float GeometrySchlick(float nDotV, float roughness)
+{
+    float r = (roughness + 1.0);
+    float k = (r*r) / 8.0;
+
+    float num = nDotV;
+    float denom = nDotV * (1.0 - k) + k;
+
+    return num / denom;
+}
+
+float GeometrySmith(float3 n, float nDotV, float3 l, float roughness)
+{
+    float nDotL = max(dot(n, l), 0.0);
+    float gs2 = GeometrySchlick(nDotV, roughness);
+    float gs1 = GeometrySchlick(nDotL, roughness);
+
+    return gs1 * gs2;
+}
+
+float3 PBR(float3 wpos, float3 viewDirection, float3 albedo, float3 n, float roughness, float shadow) {
+    // See https://blog.selfshadow.com/publications/s2013-shading-course/
+
+    float facingSpecular = 0.04;
+    float underwater = step(wpos, WaterElevation);
+    facingSpecular *= 1 - 0.9 * underwater;
+
+    float3 v = -viewDirection;
+    float3 F0 = float3(facingSpecular, facingSpecular, facingSpecular);
+    float3 l = SunDirection;
+    float3 h = normalize(v + l);
+    float nDotL = max(dot(n, l), 0.0);
+    // Normal maps can cause an angle > 90° betweeen n and v which would 
+    // cause artifacts if we don't take some countermeasures
+    float nDotV = abs(dot(n, v)) + 0.001;
+    float3 sunLight = SunColor * LightingMultiplier * shadow;
+
+    // Cook-Torrance BRDF
+    float3 F = FresnelSchlick(max(dot(h, v), 0.0), F0);
+    float NDF = NormalDistribution(n, h, roughness);
+    float G = GeometrySmith(n, nDotV, l, roughness);
+
+    // For point lights we need to multiply with Pi
+    float3 numerator = 3.14159265359 * NDF * G * F;
+    // add 0.0001 to avoid division by zero
+    float denominator = 4.0 * nDotV * nDotL + 0.0001;
+    float3 reflected = numerator / denominator;
+    
+    float3 kD = float3(1.0, 1.0, 1.0) - F;	
+    float3 refracted = kD * albedo;
+    float3 irradiance = sunLight * nDotL;
+    float3 color = (refracted + reflected) * irradiance;
+
+    float3 shadowColor = (1 - (SunColor * shadow * nDotL + SunAmbience)) * ShadowFillColor;
+    float3 ambient = SunAmbience * LightingMultiplier + shadowColor;
+
+    // we simplify here for the ambient lighting
+    color += albedo * ambient;
+
+    return color;
 }
 
 half4 CalculateLight (unity_v2f_deferred i)
@@ -119,6 +200,8 @@ half4 CalculateLight (unity_v2f_deferred i)
         color.rgb = CalculateLighting(worldNormal, eyeVec, albedo, 1-roughness, atten);
     } else if (_ShaderID == 1) {
         color.rgb = CalculateXPLighting(worldNormal, eyeVec, float4(albedo, roughness), atten);
+    } else if (_ShaderID == 2) {
+        color.rgb = PBR(wpos, eyeVec, albedo, worldNormal, roughness, mapShadow * atten);
     }
 
     // Trigger for exponential water absorption
