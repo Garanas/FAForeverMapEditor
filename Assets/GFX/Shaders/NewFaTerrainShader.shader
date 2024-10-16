@@ -172,8 +172,6 @@ Shader "FAShaders/Terrain"
             sampler2D UtilitySamplerC;
             sampler1D WaterRampSampler;
 
-            UNITY_DECLARE_SHADOWMAP(ShadowSampler);
-
             sampler2D LowerAlbedoSampler;
             sampler2D UpperAlbedoSampler;
             sampler2D LowerNormalSampler;
@@ -193,10 +191,9 @@ Shader "FAShaders/Terrain"
                 half3 tspace0 : TEXCOORD2; // tangent.x, bitangent.x, normal.x
                 half3 tspace1 : TEXCOORD3; // tangent.y, bitangent.y, normal.y
                 half3 tspace2 : TEXCOORD4; // tangent.z, bitangent.z, normal.z
-                float4 mShadow              : TEXCOORD5;
-                float3 mViewDirection        : TEXCOORD6;
-                float4 nearScales           : TEXCOORD7;
-                float4 farScales            : TEXCOORD8;
+                float3 mViewDirection        : TEXCOORD5;
+                float4 nearScales           : TEXCOORD6;
+                float4 farScales            : TEXCOORD7;
             };
 
             float4 StratumAlbedoSampler(int layer, float3 uv) {
@@ -234,13 +231,6 @@ Shader "FAShaders/Terrain"
                 
                 result.mViewDirection = normalize(v.vertex.xyz - _WorldSpaceCameraPos.xyz);
 
-                // fill in the tex coordinate for the shadow projection
-                float4 worldPos = mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1.0f));
-                result.mShadow = mul(unity_WorldToShadow[0], worldPos);
-                result.mShadow.x = ( +result.mShadow.x + result.mShadow.w ) * 0.5;
-                result.mShadow.y = ( -result.mShadow.y + result.mShadow.w ) * 0.5;
-                result.mShadow.z -= 0.01f; // put epsilon in vs to save ps instruction
-
                 half3 worldNormal = UnityObjectToWorldNormal(v.normal);
                 half3 worldTangent = UnityObjectToWorldDir(v.tangent.xyz);
                 // compute bitangent from cross product of normal and tangent
@@ -252,170 +242,25 @@ Shader "FAShaders/Terrain"
                 result.tspace2 = half3(worldTangent.z, worldBitangent.z, worldNormal.z);
             }
 
-            float ComputeShadow( float4 vShadowCoord )
+            float4 GetWaterColor(float waterDepth)
             {
-                return 1;
+                float4 waterColor = tex1D(WaterRampSampler, waterDepth);
+                return waterColor;
             }
 
-            bool IsExperimentalShader() {
-                // The tile value basically says how often the texture gets repeated on the map.
-                // A value less than one doesn't make sense under normal conditions, so it is
-                // relatively save to use it as our switch.
-
-                // in order to trigger this you can set the albedo scale to be bigger than the map 
-                // size. Use the value 10000 to be safe for any map
-                return UpperAlbedoTile.x < 1.0;
-            }
-
-            float3 ApplyWaterColor(float terrainHeight, float waterDepth, float3 color)
+            float4 GetExponentialWaterColor(float3 viewDirection, float waterDepth)
             {
-                if (waterDepth > 0) {
-                    float4 waterColor = tex1D(WaterRampSampler, waterDepth);
-                    color = lerp(color.xyz, waterColor.rgb, waterColor.a);
-                }
-                return color;
+                float3 up = float3(0,1,0);
+                // this is the length that the light travels underwater back to the camera
+                float oneOverCosV = 1 / max(dot(up, normalize(viewDirection)), 0.0001);
+                // Light gets absorbed exponentially,
+                // to simplify, we assume that the light enters vertically into the water.
+                // We need to multiply by 2 to reach 98% absorption as the waterDepth can't go over 1.
+                float waterAbsorption = 1 - saturate(exp(-waterDepth * 2 * (1 + oneOverCosV)));
+                float4 waterColor = tex1D(WaterRampSampler, waterAbsorption);
+                return float4(waterColor.rgb, waterAbsorption);
             }
 
-            float3 ApplyWaterColorExponentially(float3 viewDirection, float terrainHeight, float waterDepth, float3 color)
-            {
-                if (waterDepth > 0) {
-                    float3 up = float3(0,1,0);
-                    // this is the length that the light travels underwater back to the camera
-                    float oneOverCosV = 1 / max(dot(up, normalize(viewDirection)), 0.0001);
-                    // Light gets absorbed exponentially,
-                    // to simplify, we assume that the light enters vertically into the water.
-                    // We need to multiply by 2 to reach 98% absorption as the waterDepth can't go over 1.
-                    float waterAbsorption = 1 - saturate(exp(-waterDepth * 2 * (1 + oneOverCosV)));
-                    // darken the color first to simulate the light absorption on the way in and out
-                    color *= 1 - waterAbsorption;
-                    // lerp in the watercolor to simulate the scattered light from the dirty water
-                    float4 waterColor = tex1D(WaterRampSampler, waterAbsorption);
-                    color = lerp(color, waterColor.rgb, waterAbsorption);
-                }
-                return color;
-            }
-
-            float4 CalculateLighting( float3 inNormal, float3 worldTerrain, float3 inAlbedo, float specAmount, float waterDepth, float4 shadowCoords)
-            {
-                float4 color = float4( 0, 0, 0, 0 );
-
-                float shadow = ComputeShadow(shadowCoords);
-                if (IsExperimentalShader()) {
-                    float3 position = TerrainScale * worldTerrain;
-                    float mapShadow = tex2D(UpperAlbedoSampler, position.xy).w;
-                    shadow = shadow * mapShadow;
-                }
-
-                // calculate some specular
-                float3 viewDirection = normalize(worldTerrain.xzy - _WorldSpaceCameraPos);
-
-                float SunDotNormal = dot( SunDirection, inNormal);
-                float3 R = SunDirection - 2.0f * SunDotNormal * inNormal;
-                float specular = pow( saturate( dot(R, viewDirection) ), 80) * SpecularColor.x * specAmount;
-
-                float3 light = SunColor * saturate( SunDotNormal) * shadow + SunAmbience + specular;
-                light = LightingMultiplier * light + ShadowFillColor * ( 1 - light );
-                color.rgb = light * inAlbedo;
-
-                if (IsExperimentalShader()) {
-                    color.rgb = ApplyWaterColorExponentially(-viewDirection, worldTerrain.z, waterDepth, color);
-                } else {
-                    color.rgb = ApplyWaterColor(worldTerrain.z, waterDepth, color);
-                }
-                
-                color.a = 0.01f + (specular*SpecularColor.w);
-                return color;
-            }
-
-            const float PI = 3.14159265359;
-
-            float3 FresnelSchlick(float hDotN, float3 F0)
-            {
-                return F0 + (1.0 - F0) * pow(1.0 - hDotN, 5.0);
-            }
-
-            float NormalDistribution(float3 n, float3 h, float roughness)
-            {
-                float a2 = roughness*roughness;
-                float nDotH = max(dot(n, h), 0.0);
-                float nDotH2 = nDotH*nDotH;
-
-                float num = a2;
-                float denom = nDotH2 * (a2 - 1.0) + 1.0;
-                denom = PI * denom * denom;
-
-                return num / denom;
-            }
-
-            float GeometrySchlick(float nDotV, float roughness)
-            {
-                float r = (roughness + 1.0);
-                float k = (r*r) / 8.0;
-
-                float num = nDotV;
-                float denom = nDotV * (1.0 - k) + k;
-
-                return num / denom;
-            }
-
-            float GeometrySmith(float3 n, float nDotV, float3 l, float roughness)
-            {
-                float nDotL = max(dot(n, l), 0.0);
-                float gs2 = GeometrySchlick(nDotV, roughness);
-                float gs1 = GeometrySchlick(nDotL, roughness);
-
-                return gs1 * gs2;
-            }
-
-            float3 PBR(Input inV, float4 position, float3 albedo, float3 n, float roughness, float waterDepth) {
-                // See https://blog.selfshadow.com/publications/s2013-shading-course/
-
-                float shadow = 1;
-                float mapShadow = tex2D(UpperAlbedoSampler, position.xy).w; // 1 where sun is, 0 where shadow is
-                shadow = UNITY_SAMPLE_SHADOW(ShadowSampler, inV.mShadow.xyz);
-                shadow *= mapShadow;
-
-
-                float facingSpecular = 0.04;
-                // using only the texture looks bad when zoomed in, using only the mesh 
-                // looks bad when zoomed out, so we interpolate between both
-                float underwater = step(inV.mTexWT.z, WaterElevation);
-                facingSpecular *= 1 - 0.9 * underwater;
-
-                float3 v = normalize(-inV.mViewDirection);
-                float3 F0 = float3(facingSpecular, facingSpecular, facingSpecular);
-                float3 l = SunDirection;
-                float3 h = normalize(v + l);
-                float nDotL = max(dot(n, l), 0.0);
-                // Normal maps can cause an angle > 90° betweeen n and v which would 
-                // cause artifacts if we don't take some countermeasures
-                float nDotV = abs(dot(n, v)) + 0.001;
-                float3 sunLight = SunColor * LightingMultiplier * shadow;
-
-                // Cook-Torrance BRDF
-                float3 F = FresnelSchlick(max(dot(h, v), 0.0), F0);
-                float NDF = NormalDistribution(n, h, roughness);
-                float G = GeometrySmith(n, nDotV, l, roughness);
-
-                // For point lights we need to multiply with Pi
-                float3 numerator = PI * NDF * G * F;
-                // add 0.0001 to avoid division by zero
-                float denominator = 4.0 * nDotV * nDotL + 0.0001;
-                float3 reflected = numerator / denominator;
-    
-                float3 kD = float3(1.0, 1.0, 1.0) - F;	
-                float3 refracted = kD * albedo;
-                float3 irradiance = sunLight * nDotL;
-                float3 color = (refracted + reflected) * irradiance;
-
-                float3 shadowColor = (1 - (SunColor * shadow * nDotL + SunAmbience)) * ShadowFillColor;
-                float3 ambient = SunAmbience * LightingMultiplier + shadowColor;
-
-                // we simplify here for the ambient lighting
-                color += albedo * ambient;
-
-                return color;
-            }
 
             float4 TerrainNormalsPS( Input inV )
             {
@@ -461,13 +306,7 @@ Shader "FAShaders/Terrain"
                 albedo = lerp( albedo, stratum3Albedo, mask.w );
                 albedo.xyz = lerp( albedo.xyz, upperAlbedo.xyz, upperAlbedo.w );
 
-                // get the water depth
-                float waterDepth = tex2D( UtilitySamplerC, inV.mTexWT * TerrainScale).g;
-
-                // calculate the lit pixel
-                float4 outColor = CalculateLighting( normal, inV.mTexWT.xyz, albedo.xyz, 1-albedo.w, waterDepth, inV.mShadow);
-                
-                return outColor;
+                return albedo;
             }
 
             float4 renderFog(float4 color){
@@ -574,7 +413,7 @@ Shader "FAShaders/Terrain"
                 return Emit;
             }
 
-            void surf(Input inV, inout SurfaceOutput o)
+            void surf(Input inV, inout SurfaceOutputStandardSpecular o)
             {
                 float shaderNumber = 0;
                 float4 outColor;
@@ -582,6 +421,17 @@ Shader "FAShaders/Terrain"
                 if (shaderNumber == 0)
                 {
                     outColor = TerrainPS(inV);
+                    o.Albedo = outColor.rgb;
+                    o.Alpha = outColor.a; // for specularity
+                    o.Normal = TerrainNormalsPS(inV).xyz*2-1;
+
+                    float4 waterColor = GetWaterColor(tex2D(UtilitySamplerC, inV.mTexWT * TerrainScale).g);
+                    o.Specular = waterColor.rgb;
+                    o.Smoothness = waterColor.a; // water absorption
+
+                    float3 position = TerrainScale * inV.mTexWT.xyz;
+                    float mapShadow = tex2D(UpperAlbedoSampler, position.xy).w;
+                    o.Occlusion = mapShadow;
                 }
                 // else if (shaderNumber == 1)
                 // {
@@ -592,7 +442,7 @@ Shader "FAShaders/Terrain"
                 //     outColor = Terrain001PS(inV);
                 // }
                 else {
-                    outColor = float4(1, 0, 1, 1);
+                    o.Albedo = float4(1, 0, 1, 1);
                 }
 
                 // outColor = renderFog(outColor);
@@ -602,8 +452,6 @@ Shader "FAShaders/Terrain"
                 // outColor = renderTerrainType(outColor);
                 // outColor.rgb += renderGridOverlay(inV.mTexWT.xy);
                 
-                o.Albedo = outColor.rgb;
-                o.Alpha = outColor.a;
             }
             ENDCG
     }

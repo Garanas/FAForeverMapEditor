@@ -89,7 +89,7 @@ Properties {
 			CGPROGRAM
 			#define UNITY_BRDF_PBS BRDF3_Unity_PBS
 
-			#pragma surface surf SimpleLambert vertex:vert exclude_path:forward nometa
+			#pragma surface surf Lambert vertex:vert exclude_path:forward nometa
 			#pragma multi_compile_fog
 			//#pragma debug
 			#pragma target 3.5

@@ -42,11 +42,30 @@ sampler2D _CameraGBufferTexture1;
 sampler2D _CameraGBufferTexture2;
 
 uniform int _TTerrainXP;
-uniform half _LightingMultiplier;
-uniform fixed4 _SunColor;
-uniform fixed4 _SunAmbience;
-uniform fixed4 _ShadowColor;
-uniform fixed4 _SpecularColor;
+uniform half LightingMultiplier;
+uniform fixed4 SunColor;
+uniform fixed4 SunDirection;
+uniform fixed4 SunAmbience;
+uniform fixed4 ShadowFillColor;
+uniform fixed4 SpecularColor;
+
+
+
+float4 CalculateLighting( float3 inNormal, float3 viewDirection, float3 inAlbedo, float specAmount, float shadow)
+{
+    float4 color = float4( 0, 0, 0, 0 );
+
+    float SunDotNormal = dot( SunDirection, inNormal);
+    float3 R = SunDirection - 2.0f * SunDotNormal * inNormal;
+    float specular = pow( saturate( dot(R, viewDirection) ), 80) * SpecularColor.x * specAmount;
+
+    float3 light = SunColor * saturate( SunDotNormal) * shadow + SunAmbience + specular;
+    light = LightingMultiplier * light + ShadowFillColor * ( 1 - light );
+    color.rgb = light * inAlbedo;
+                
+    color.a = 0.01f + (specular*SpecularColor.w);
+    return color;
+}
 
 half4 CalculateLight (unity_v2f_deferred i)
 {
@@ -67,7 +86,6 @@ half4 CalculateLight (unity_v2f_deferred i)
     half4 gbuffer2 = tex2D (_CameraGBufferTexture2, uv);
     UnityStandardData data = UnityStandardDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2);
 
-    data.diffuseColor.rgb   = gbuffer0.rgb;
 
     float3 eyeVec = normalize(wpos-_WorldSpaceCameraPos);
     half oneMinusReflectivity = 1 - SpecularStrength(data.specularColor.rgb);
@@ -77,19 +95,28 @@ half4 CalculateLight (unity_v2f_deferred i)
     ind.diffuse = 0;
     ind.specular = 0;
 
-   // if (light.ndotl <= 0.0) 
-   //  light.ndotl = 0;
-   // else 
-   //  light.ndotl = 1;
 
-    //half4 res = UNITY_BRDF_PBS (data.diffuseColor, data.specularColor, oneMinusReflectivity, data.smoothness, data.normalWorld, -eyeVec, light, ind);
-	float4 c;
-    float AlbedoAlpha = gbuffer1.a;
+	float4 color;
+    float3 albedo = gbuffer0.rgb;
+    float albedoAlpha = gbuffer0.a;
+    float3 waterColor = gbuffer1.rgb;
+    float waterAbsorption = gbuffer1.a;
+    float3 worldNormal = gbuffer2.rgb;
+    float mapShadow = gbuffer2.a;
 
-	c.rgb = data.diffuseColor;
-	c.a = 1;
+	color.rgb = albedo;
 
-    return c;
+    color.rgb = CalculateLighting(worldNormal, eyeVec, albedo, 1-albedoAlpha, atten);
+
+    if (_TTerrainXP > 0) {
+        // darken the color first to simulate the light absorption on the way in and out
+        color *= 1 - waterAbsorption;
+    }
+    color.rgb = lerp(color.rgb, waterColor, waterAbsorption);
+
+	color.a = 1;
+
+    return color;
 }
 
 #ifdef UNITY_HDR_ON

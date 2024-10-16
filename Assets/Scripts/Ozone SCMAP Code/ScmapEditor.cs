@@ -86,7 +86,6 @@ public partial class ScmapEditor : MonoBehaviour
 		Sun.transform.rotation = Quaternion.LookRotation(SunDIr);
 		Sun.color = new Color(map.SunColor.x, map.SunColor.y, map.SunColor.z, 1);
 		Sun.intensity = map.LightingMultiplier * EditMap.LightingInfo.SunMultipiler;
-		RenderSettings.ambientLight = new Color(map.ShadowFillColor.x, map.ShadowFillColor.y, map.ShadowFillColor.z, 1);
 
 		/*BloomModel.Settings Bs = PostProcessing.bloom.settings;
 		Bs.bloom.intensity = map.Bloom * 10;
@@ -99,12 +98,12 @@ public partial class ScmapEditor : MonoBehaviour
 		RenderSettings.fogStartDistance = map.FogStart * 4f;
 		RenderSettings.fogEndDistance = map.FogEnd * 4f;
 
-		TerrainMaterial.SetVector("ShadowFillColor", map.ShadowFillColor);
-		TerrainMaterial.SetFloat("LightingMultiplier", map.LightingMultiplier);
-		TerrainMaterial.SetVector("SunDirection", new Vector3(map.SunDirection.x, map.SunDirection.y, -map.SunDirection.z));
-		TerrainMaterial.SetVector("SunAmbience", map.SunAmbience);
-		TerrainMaterial.SetVector("SunColor", map.SunColor);
-		TerrainMaterial.SetVector("SpecularColor", map.SpecularColor);
+        Shader.SetGlobalVector("ShadowFillColor", map.ShadowFillColor);
+        Shader.SetGlobalFloat("LightingMultiplier", map.LightingMultiplier);
+        Shader.SetGlobalVector("SunDirection", new Vector3(map.SunDirection.x, map.SunDirection.y, -map.SunDirection.z));
+        Shader.SetGlobalVector("SunAmbience", map.SunAmbience);
+        Shader.SetGlobalVector("SunColor", map.SunColor);
+        Shader.SetGlobalVector("SpecularColor", map.SpecularColor);
 	}
 
 
@@ -394,7 +393,7 @@ public partial class ScmapEditor : MonoBehaviour
 		WaterMaterial.SetColor("sunColor", new Color(map.Water.SunColor.x * 0.5f, map.Water.SunColor.y * 0.5f, map.Water.SunColor.z * 0.5f, 1));
 
 		Shader.SetGlobalVector("waterLerp", map.Water.ColorLerp);
-		Shader.SetGlobalVector("SunDirection", new Vector3(map.Water.SunDirection.x, map.Water.SunDirection.y, -map.Water.SunDirection.z));
+		Shader.SetGlobalVector("WaterSunDirection", new Vector3(map.Water.SunDirection.x, map.Water.SunDirection.y, -map.Water.SunDirection.z));
 		Shader.SetGlobalFloat("SunShininess", map.Water.SunShininess);
 		Shader.SetGlobalFloat("sunReflectionAmount", map.Water.SunReflection);
 		Shader.SetGlobalFloat("unitreflectionAmount", map.Water.UnitReflection);
