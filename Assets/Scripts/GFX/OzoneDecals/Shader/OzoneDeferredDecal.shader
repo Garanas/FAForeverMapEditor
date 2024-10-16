@@ -129,7 +129,7 @@ Shader "Ozone/Deferred Decal"
 				normal = mul(normal, half3x3(i.decalTangent, decalBitangent, i.decalNormal));
 
 				// Write normal
-				outNormal = float4(normal * 0.5 + 0.5, saturate(AlphaNormal * blend));
+				outNormal = float4(normal * 0.5 + 0.5, 0);
 			}
 			ENDCG
 		}
