@@ -40,6 +40,7 @@ CGPROGRAM
 sampler2D _CameraGBufferTexture0;
 sampler2D _CameraGBufferTexture1;
 sampler2D _CameraGBufferTexture2;
+sampler1D WaterRampSampler;
 
 uniform int _Area;
 uniform half4 _AreaRect;
@@ -54,6 +55,33 @@ uniform fixed4 SpecularColor;
 uniform float WaterElevation;
 
 
+float3 ApplyWaterColor(float waterDepth, float3 color)
+{
+    if (waterDepth > 0) {
+        float4 waterColor = tex1D(WaterRampSampler, waterDepth);
+        color = lerp(color.xyz, waterColor.rgb, waterColor.a);
+    }
+    return color;
+}
+
+float3 ApplyWaterColorExponentially(float3 viewDirection, float waterDepth, float3 color)
+{
+    if (waterDepth > 0) {
+        float3 up = float3(0,1,0);
+        // this is the length that the light travels underwater back to the camera
+        float oneOverCosV = 1 / max(dot(up, normalize(viewDirection)), 0.0001);
+        // Light gets absorbed exponentially,
+        // to simplify, we assume that the light enters vertically into the water.
+        // We need to multiply by 2 to reach 98% absorption as the waterDepth can't go over 1.
+        float waterAbsorption = 1 - saturate(exp(-waterDepth * 2 * (1 + oneOverCosV)));
+        // darken the color first to simulate the light absorption on the way in and out
+        color *= 1 - waterAbsorption;
+        // lerp in the watercolor to simulate the scattered light from the dirty water
+        float4 waterColor = tex1D(WaterRampSampler, waterAbsorption);
+        color = lerp(color, waterColor.rgb, waterAbsorption);
+    }
+    return color;
+}
 
 float4 CalculateLighting( float3 inNormal, float3 viewDirection, float3 inAlbedo, float specAmount, float shadow)
 {
@@ -184,11 +212,11 @@ half4 CalculateLight (unity_v2f_deferred i)
     float3 eyeVec = normalize(wpos-_WorldSpaceCameraPos);
 
     float3 albedo = gbuffer0.rgb;
-    float roughness = gbuffer0.a;
-    float3 waterColor = gbuffer1.rgb;
-    float waterAbsorption = gbuffer1.a;
+    float alpha = gbuffer0.a;
+    float mapShadow = gbuffer1.r;
+    float waterDepth = gbuffer1.g;
+    float roughness = gbuffer1.b;
     float3 worldNormal = gbuffer2.rgb;
-    float mapShadow = gbuffer2.a;
 
     worldNormal = worldNormal * 2 - 1;
     // The game is using a different coordinate system, so we need to correct for that
@@ -197,19 +225,19 @@ half4 CalculateLight (unity_v2f_deferred i)
 	float4 color;
 
     if (_ShaderID == 0) {
-        color.rgb = CalculateLighting(worldNormal, eyeVec, albedo, 1-roughness, atten);
+        color.rgb = CalculateLighting(worldNormal, eyeVec, albedo, 1-alpha, atten);
     } else if (_ShaderID == 1) {
-        color.rgb = CalculateXPLighting(worldNormal, eyeVec, float4(albedo, roughness), atten);
+        color.rgb = CalculateXPLighting(worldNormal, eyeVec, float4(albedo, alpha), atten);
     } else if (_ShaderID == 2) {
         color.rgb = PBR(wpos, eyeVec, albedo, worldNormal, roughness, mapShadow * atten);
     }
 
     // Trigger for exponential water absorption
     if (LightingMultiplier > 2.1) {
-        // darken the color first to simulate the light absorption on the way in and out
-        color *= 1 - waterAbsorption;
+        color.rgb = ApplyWaterColorExponentially(-eyeVec, waterDepth, color.rgb);
+    } else {
+        color.rgb = ApplyWaterColor(waterDepth, color.rgb);
     }
-    color.rgb = lerp(color.rgb, waterColor, waterAbsorption);
 
     color.a = 1;
     if(_Area > 0){

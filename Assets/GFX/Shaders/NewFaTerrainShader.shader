@@ -252,26 +252,6 @@ Shader "FAShaders/Terrain"
 		    	result.fog = saturate((unity_FogEnd.x - pos) * invDiff);
             }
 
-            float4 GetWaterColor(float waterDepth)
-            {
-                float4 waterColor = tex1D(WaterRampSampler, waterDepth);
-                return waterColor;
-            }
-
-            float4 GetExponentialWaterColor(float3 viewDirection, float waterDepth)
-            {
-                float3 up = float3(0,1,0);
-                // this is the length that the light travels underwater back to the camera
-                float oneOverCosV = 1 / max(dot(up, normalize(viewDirection)), 0.0001);
-                // Light gets absorbed exponentially,
-                // to simplify, we assume that the light enters vertically into the water.
-                // We need to multiply by 2 to reach 98% absorption as the waterDepth can't go over 1.
-                float waterAbsorption = 1 - saturate(exp(-waterDepth * 2 * (1 + oneOverCosV)));
-                float4 waterColor = tex1D(WaterRampSampler, waterAbsorption);
-                return float4(waterColor.rgb, waterAbsorption);
-            }
-
-
             float4 TerrainNormalsPS( Input inV )
             {
                 // sample all the textures we'll need
@@ -679,31 +659,28 @@ Shader "FAShaders/Terrain"
             // This way the decals and the terrain have consistent lighting
             void surf(Input inV, inout CustomSurfaceOutput o)
             {
+                float3 position = TerrainScale * inV.mTexWT.xyz;
                 if (_ShaderID == 0)
                 {
                     float4 albedo = TerrainPS(inV);
                     o.Albedo = albedo.rgb;
-                    o.Roughness = albedo.a; // for specularity
+                    o.Alpha = albedo.a; // for specularity
 
                     float3 normal = TangentToWorldSpace(inV, TerrainNormalsPS(inV).xyz);
                     o.wNormal = normalize(normal);
 
-                    float4 waterColor = GetWaterColor(tex2D(UtilitySamplerC, inV.mTexWT * TerrainScale).g);
-                    o.WaterColor = waterColor.rgb;
-                    o.WaterAbsorption = waterColor.a;
+                    o.WaterDepth = tex2D(UtilitySamplerC, position.xy).g;
                 }
                 else if (_ShaderID == 1)
                 {
                     float4 albedo = TerrainAlbedoXP(inV);
                     o.Albedo = albedo.rgb;
-                    o.Roughness = albedo.a; // for specularity
+                    o.Alpha = albedo.a; // for specularity
 
                     float3 normal = TangentToWorldSpace(inV, TerrainNormalsXP(inV).xyz);
                     o.wNormal = normalize(normal);
 
-                    float4 waterColor = GetWaterColor(tex2D(UtilitySamplerC, inV.mTexWT * TerrainScale).g);
-                    o.WaterColor = waterColor.rgb;
-                    o.WaterAbsorption = waterColor.a;
+                    o.WaterDepth = tex2D(UtilitySamplerC, position.xy).g;
                 }
                 else if (_ShaderID == 2)
                 {
@@ -714,21 +691,18 @@ Shader "FAShaders/Terrain"
                     float3 normal = TangentToWorldSpace(inV, Terrain301NormalsPS(inV, true).xyz);
                     o.wNormal = normalize(normal);
 
-                    float4 waterColor = GetExponentialWaterColor(inV.mViewDirection, tex2D(UpperAlbedoSampler, inV.mTexWT * TerrainScale).r);
-                    o.WaterColor = waterColor.rgb;
-                    o.WaterAbsorption = waterColor.a;
+                    o.WaterDepth = tex2D(UpperAlbedoSampler, position.xy).r;
                  
-                    float3 position = TerrainScale * inV.mTexWT.xyz;
                     o.MapShadow = tex2D(UpperAlbedoSampler, position.xy).w;
                 }
                 else {
                     o.Albedo = float3(1, 0, 1);
                 }
 
-                o.Emission = renderBrush(inV.mTexWT.xy * TerrainScale);
+                o.Emission = renderBrush(position.xy);
                 o.Emission += renderSlope(inV);
-                o.Albedo = renderTerrainType(o.Albedo, inV.mTexWT.xy * TerrainScale);
-                o.Emission += renderGridOverlay(inV.mTexWT.xy * TerrainScale);
+                o.Albedo = renderTerrainType(o.Albedo, position.xy);
+                o.Emission += renderGridOverlay(position.xy);
 
                 // fog
                 o.Albedo = lerp(0, o.Albedo, inV.fog);
