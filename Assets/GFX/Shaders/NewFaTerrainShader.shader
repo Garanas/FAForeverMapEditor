@@ -285,9 +285,13 @@ Shader "FAShaders/Terrain"
 
                 // blend all normals together
                 float4 normal = lowerNormal;
+                if(_HideStratum0 == 0)
                 normal = lerp( normal, stratum0Normal, mask.x );
+                if(_HideStratum1 == 0)
                 normal = lerp( normal, stratum1Normal, mask.y );
+                if(_HideStratum2 == 0)
                 normal = lerp( normal, stratum2Normal, mask.z );
+                if(_HideStratum3 == 0)
                 normal = lerp( normal, stratum3Normal, mask.w );
                 normal.xyz = normalize( normal.xyz );
 
@@ -307,9 +311,13 @@ Shader "FAShaders/Terrain"
 
                 // blend all albedos together
                 float4 albedo = lowerAlbedo;
+                if(_HideStratum0 == 0)
                 albedo = lerp( albedo, stratum0Albedo, mask.x );
+                if(_HideStratum1 == 0)
                 albedo = lerp( albedo, stratum1Albedo, mask.y );
+                if(_HideStratum2 == 0)
                 albedo = lerp( albedo, stratum2Albedo, mask.z );
+                if(_HideStratum3 == 0)
                 albedo = lerp( albedo, stratum3Albedo, mask.w );
                 albedo.xyz = lerp( albedo.xyz, upperAlbedo.xyz, upperAlbedo.w );
 
@@ -332,13 +340,21 @@ Shader "FAShaders/Terrain"
                 float4 stratum7Normal = normalize(StratumNormalSampler(7,pixel.mTexWT*TerrainScale*Stratum7NormalTile)*2-1);
 
                 float4 normal = lowerNormal;
+                if(_HideStratum0 == 0)
                 normal = lerp(normal,stratum0Normal,mask0.x);
+                if(_HideStratum1 == 0)
                 normal = lerp(normal,stratum1Normal,mask0.y);
+                if(_HideStratum2 == 0)
                 normal = lerp(normal,stratum2Normal,mask0.z);
+                if(_HideStratum3 == 0)
                 normal = lerp(normal,stratum3Normal,mask0.w);
+                if(_HideStratum4 == 0)
                 normal = lerp(normal,stratum4Normal,mask1.x);
+                if(_HideStratum5 == 0)
                 normal = lerp(normal,stratum5Normal,mask1.y);
+                if(_HideStratum6 == 0)
                 normal = lerp(normal,stratum6Normal,mask1.z);
+                if(_HideStratum7 == 0)
                 normal = lerp(normal,stratum7Normal,mask1.w);
                 normal.xyz = normalize( normal.xyz );
 
@@ -364,14 +380,23 @@ Shader "FAShaders/Terrain"
                 float4 upperAlbedo = tex2D(UpperAlbedoSampler,position*UpperAlbedoTile);
 
                 float4 albedo = lowerAlbedo;
+                if(_HideStratum0 == 0)
                 albedo = lerp(albedo,stratum0Albedo,mask0.x);
+                if(_HideStratum1 == 0)
                 albedo = lerp(albedo,stratum1Albedo,mask0.y);
+                if(_HideStratum2 == 0)
                 albedo = lerp(albedo,stratum2Albedo,mask0.z);
+                if(_HideStratum3 == 0)
                 albedo = lerp(albedo,stratum3Albedo,mask0.w);
+                if(_HideStratum4 == 0)
                 albedo = lerp(albedo,stratum4Albedo,mask1.x);
+                if(_HideStratum5 == 0)
                 albedo = lerp(albedo,stratum5Albedo,mask1.y);
+                if(_HideStratum6 == 0)
                 albedo = lerp(albedo,stratum6Albedo,mask1.z);
+                if(_HideStratum7 == 0)
                 albedo = lerp(albedo,stratum7Albedo,mask1.w);
+                if(_HideStratum8 == 0)
                 albedo.rgb = lerp(albedo.xyz,upperAlbedo.xyz,upperAlbedo.w);
 
                 return albedo;
