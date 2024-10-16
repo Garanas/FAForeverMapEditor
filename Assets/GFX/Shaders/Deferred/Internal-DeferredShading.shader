@@ -41,6 +41,9 @@ sampler2D _CameraGBufferTexture0;
 sampler2D _CameraGBufferTexture1;
 sampler2D _CameraGBufferTexture2;
 
+uniform int _Area;
+uniform half4 _AreaRect;
+half _GridScale;
 uniform int _ShaderID;
 uniform half LightingMultiplier;
 uniform fixed4 SunColor;
@@ -125,7 +128,21 @@ half4 CalculateLight (unity_v2f_deferred i)
     }
     color.rgb = lerp(color.rgb, waterColor, waterAbsorption);
 
-	color.a = 1;
+    color.a = 1;
+    if(_Area > 0){
+		if(wpos.x < _AreaRect.x){
+            color.rgb = 0;
+		}
+		else if(wpos.x > _AreaRect.z){
+			color.rgb = 0;
+		}
+		else if(wpos.z < _AreaRect.y - _GridScale){
+			color.rgb = 0;
+		}
+		else if(wpos.z > _AreaRect.w - _GridScale){
+			color.rgb = 0;
+		}
+	}
 
     return color;
 }

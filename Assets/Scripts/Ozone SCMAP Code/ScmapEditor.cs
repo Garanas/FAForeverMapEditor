@@ -167,9 +167,8 @@ public partial class ScmapEditor : MonoBehaviour
 
 		WaterLevel.transform.localScale = new Vector3(HalfxRes, 1, HalfzRes);
 		TerrainMaterial.SetFloat("TerrainScale", (float) 1.0 / xRes);
-		TerrainMaterial.SetFloat("_GridScale", HalfxRes);
+        Shader.SetGlobalFloat("_GridScale", HalfxRes);
 		TerrainMaterial.SetTexture("UtilitySamplerC", map.UncompressedWatermapTex);
-		WaterMaterial.SetFloat("_GridScale", HalfxRes);
 
 
 		for (int i = 0; i < map.EnvCubemapsFile.Length; i++)

@@ -133,9 +133,6 @@ Shader "FAShaders/Terrain"
 			half _BrushUvX;
 			half _BrushUvY;
 
-			uniform int _Area;
-			uniform half4 _AreaRect;
-
             uniform int _ShaderID;
 
             float3 ShadowFillColor;
@@ -196,6 +193,8 @@ Shader "FAShaders/Terrain"
                 float3 mViewDirection        : TEXCOORD5;
                 float4 nearScales           : TEXCOORD6;
                 float4 farScales            : TEXCOORD7;
+
+                float SlopeLerp;
             };
 
             float4 StratumAlbedoSampler(int layer, float3 uv) {
@@ -242,6 +241,8 @@ Shader "FAShaders/Terrain"
                 result.tspace0 = half3(worldTangent.x, worldBitangent.x, worldNormal.x);
                 result.tspace1 = half3(worldTangent.y, worldBitangent.y, worldNormal.y);
                 result.tspace2 = half3(worldTangent.z, worldBitangent.z, worldNormal.z);
+
+                result.SlopeLerp = dot(v.normal, half3(0,1,0));
             }
 
             float4 GetWaterColor(float waterDepth)
@@ -372,28 +373,11 @@ Shader "FAShaders/Terrain"
             float4 renderFog(float4 color){
                 return color;
             }
-            
-            float4 renderOnlyArea(float4 worldPos, float4 color){
-                if(_Area > 0){
-					if(worldPos.x < _AreaRect.x){
-                        color.rgb = 0;
-					}
-					else if(worldPos.x > _AreaRect.z){
-						color.rgb = 0;
-					}
-					else if(worldPos.z < _AreaRect.y - _GridScale){
-						color.rgb = 0;
-					}
-					else if(worldPos.z > _AreaRect.w - _GridScale){
-						color.rgb = 0;
-					}
-				}
-                return color;
-            }
 
             float3 renderBrush(float2 uv){
                 float3 Emit = 0;
                 if (_Brush > 0) {
+                    uv.y = 1-uv.y;
 					float2 BrushUv = ((uv - float2(_BrushUvX, _BrushUvY)) * _GridScale) / (_BrushSize * _GridScale * 0.002);
 					fixed4 BrushColor = tex2D(_BrushTex, BrushUv);
 
@@ -427,12 +411,39 @@ Shader "FAShaders/Terrain"
                 return Emit;
             }
 
-            float4 renderSlope(float4 color){
-                return color;
+            float3 renderSlope(Input IN){
+                float3 Emit = 0;
+                if (_Slope > 0) {
+					half3 SlopeColor = 0;
+					if (_UseSlopeTex > 0) {
+						float4 splat_control = tex2D(_SlopeTex, IN.mTexWT);
+						SlopeColor = splat_control.rgb;
+
+					}
+					else {
+
+						if (IN.mTexWT.y * TerrainScale < WaterElevation) {
+							if (IN.SlopeLerp > 0.75) SlopeColor = half3(0, 0.4, 1);
+							else SlopeColor = half3(0.6, 0, 1);
+						}
+						else if (IN.SlopeLerp > 0.999) SlopeColor = half3(0, 0.8, 0);
+						else if (IN.SlopeLerp > 0.95) SlopeColor = half3(0.3, 0.89, 0);
+						else if (IN.SlopeLerp > 0.80) SlopeColor = half3(0.5, 0.8, 0);
+						else SlopeColor = half3(1, 0, 0);
+
+					}
+					Emit = SlopeColor * 0.8;
+					// col.rgb = lerp(col.rgb, 0, 0.8);
+				}
+                return Emit;
             }
 
-            float4 renderTerrainType(float4 color){
-                return color;
+            float3 renderTerrainType(float3 albedo, float2 uv){
+                if(_HideTerrainType == 0) {
+					float4 TerrainTypeAlbedo = tex2D (_TerrainTypeAlbedo, uv);
+					albedo = lerp(albedo, TerrainTypeAlbedo, TerrainTypeAlbedo.a*_TerrainTypeCapacity);
+				}
+                return albedo;
             }
 
             float4 RenderGrid(sampler2D _GridTex, float2 uv_Control, float Offset, float GridScale) {
@@ -525,11 +536,10 @@ Shader "FAShaders/Terrain"
                 }
 
                 // outColor = renderFog(outColor);
-                // outColor = renderOnlyArea(inV.mPos, outColor);
-                // outColor.rgb += renderBrush(inV.mTexWT.xy);
-                // outColor = renderSlope(outColor);
-                // outColor = renderTerrainType(outColor);
-                // outColor.rgb += renderGridOverlay(inV.mTexWT.xy);
+                o.Emission = renderBrush(inV.mTexWT.xy * TerrainScale);
+                o.Emission += renderSlope(inV);
+                o.Albedo = renderTerrainType(o.Albedo, inV.mTexWT.xy * TerrainScale);
+                o.Emission += renderGridOverlay(inV.mTexWT.xy * TerrainScale);
                 
             }
             ENDCG
