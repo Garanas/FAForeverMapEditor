@@ -41,7 +41,7 @@ sampler2D _CameraGBufferTexture0;
 sampler2D _CameraGBufferTexture1;
 sampler2D _CameraGBufferTexture2;
 
-uniform int _TTerrainXP;
+uniform int _ShaderID;
 uniform half LightingMultiplier;
 uniform fixed4 SunColor;
 uniform fixed4 SunDirection;
@@ -67,6 +67,20 @@ float4 CalculateLighting( float3 inNormal, float3 viewDirection, float3 inAlbedo
     return color;
 }
 
+float4 CalculateXPLighting( float3 normal, float3 viewDirection, float4 albedo, float shadow)
+{
+    float3 r = reflect(viewDirection,normal);
+    float3 specular = pow(saturate(dot(r,SunDirection)),80)*albedo.aaa*SpecularColor.a*SpecularColor.rgb;
+
+    float dotSunNormal = dot(SunDirection,normal);
+
+    float3 light = SunColor*saturate(dotSunNormal)*shadow + SunAmbience;
+    light = LightingMultiplier*light + ShadowFillColor*(1-light);
+    albedo.rgb = light * ( albedo.rgb + specular.rgb );
+
+    return albedo;
+}
+
 half4 CalculateLight (unity_v2f_deferred i)
 {
     float3 wpos;
@@ -78,41 +92,34 @@ half4 CalculateLight (unity_v2f_deferred i)
 
     light.color = _LightColor.rgb * atten;
 
-
-
     // unpack Gbuffer
     half4 gbuffer0 = tex2D (_CameraGBufferTexture0, uv);
     half4 gbuffer1 = tex2D (_CameraGBufferTexture1, uv);
     half4 gbuffer2 = tex2D (_CameraGBufferTexture2, uv);
-    UnityStandardData data = UnityStandardDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2);
-
 
     float3 eyeVec = normalize(wpos-_WorldSpaceCameraPos);
-    half oneMinusReflectivity = 1 - SpecularStrength(data.specularColor.rgb);
 
-    UnityIndirect ind;
-    UNITY_INITIALIZE_OUTPUT(UnityIndirect, ind);
-    ind.diffuse = 0;
-    ind.specular = 0;
-
-
-	float4 color;
     float3 albedo = gbuffer0.rgb;
-    float albedoAlpha = gbuffer0.a;
+    float roughness = gbuffer0.a;
     float3 waterColor = gbuffer1.rgb;
     float waterAbsorption = gbuffer1.a;
     float3 worldNormal = gbuffer2.rgb;
     float mapShadow = gbuffer2.a;
 
-	color.rgb = albedo;
-
     worldNormal = worldNormal * 2 - 1;
     // The game is using a different coordinate system, so we need to correct for that
     worldNormal.z = worldNormal.z * -1;
 
-    color.rgb = CalculateLighting(worldNormal, eyeVec, albedo, 1-albedoAlpha, atten);
+	float4 color;
 
-    if (_TTerrainXP > 0) {
+    if (_ShaderID == 0) {
+        color.rgb = CalculateLighting(worldNormal, eyeVec, albedo, 1-roughness, atten);
+    } else if (_ShaderID == 1) {
+        color.rgb = CalculateXPLighting(worldNormal, eyeVec, float4(albedo, roughness), atten);
+    }
+
+    // Trigger for exponential water absorption
+    if (LightingMultiplier > 2.1) {
         // darken the color first to simulate the light absorption on the way in and out
         color *= 1 - waterAbsorption;
     }

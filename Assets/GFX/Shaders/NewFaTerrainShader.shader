@@ -136,6 +136,8 @@ Shader "FAShaders/Terrain"
 			uniform int _Area;
 			uniform half4 _AreaRect;
 
+            uniform int _ShaderID;
+
             float3 ShadowFillColor;
             float LightingMultiplier;
             float3 SunDirection;
@@ -281,7 +283,7 @@ Shader "FAShaders/Terrain"
                 normal = lerp( normal, stratum3Normal, mask.w );
                 normal.xyz = normalize( normal.xyz );
 
-                return float4( (normal.xyz * 0.5 + 0.5) , normal.w);
+                return normal;
             }
 
             float4 TerrainPS( Input inV )
@@ -295,9 +297,6 @@ Shader "FAShaders/Terrain"
                 float4 stratum2Albedo = StratumAlbedoSampler(2, inV.mTexWT * TerrainScale * Stratum2AlbedoTile);
                 float4 stratum3Albedo = StratumAlbedoSampler(3, inV.mTexWT * TerrainScale * Stratum3AlbedoTile);
 
-                float3 normal = TerrainNormalsPS(inV).xyz*2-1;
-                normal = TangentToWorldSpace(inV, normal);
-
                 // blend all albedos together
                 float4 albedo = lowerAlbedo;
                 albedo = lerp( albedo, stratum0Albedo, mask.x );
@@ -305,6 +304,67 @@ Shader "FAShaders/Terrain"
                 albedo = lerp( albedo, stratum2Albedo, mask.z );
                 albedo = lerp( albedo, stratum3Albedo, mask.w );
                 albedo.xyz = lerp( albedo.xyz, upperAlbedo.xyz, upperAlbedo.w );
+
+                return albedo;
+            }
+
+            float4 TerrainNormalsXP( Input pixel )
+            {
+                float4 mask0 = saturate(tex2D(UtilitySamplerA,pixel.mTexWT*TerrainScale));
+                float4 mask1 = saturate(tex2D(UtilitySamplerB,pixel.mTexWT*TerrainScale));
+
+                float4 lowerNormal = normalize(tex2D(LowerNormalSampler,pixel.mTexWT*TerrainScale*LowerNormalTile)*2-1);
+                float4 stratum0Normal = normalize(StratumNormalSampler(0,pixel.mTexWT*TerrainScale*Stratum0NormalTile)*2-1);
+                float4 stratum1Normal = normalize(StratumNormalSampler(1,pixel.mTexWT*TerrainScale*Stratum1NormalTile)*2-1);
+                float4 stratum2Normal = normalize(StratumNormalSampler(2,pixel.mTexWT*TerrainScale*Stratum2NormalTile)*2-1);
+                float4 stratum3Normal = normalize(StratumNormalSampler(3,pixel.mTexWT*TerrainScale*Stratum3NormalTile)*2-1);
+                float4 stratum4Normal = normalize(StratumNormalSampler(4,pixel.mTexWT*TerrainScale*Stratum4NormalTile)*2-1);
+                float4 stratum5Normal = normalize(StratumNormalSampler(5,pixel.mTexWT*TerrainScale*Stratum5NormalTile)*2-1);
+                float4 stratum6Normal = normalize(StratumNormalSampler(6,pixel.mTexWT*TerrainScale*Stratum6NormalTile)*2-1);
+                float4 stratum7Normal = normalize(StratumNormalSampler(7,pixel.mTexWT*TerrainScale*Stratum7NormalTile)*2-1);
+
+                float4 normal = lowerNormal;
+                normal = lerp(normal,stratum0Normal,mask0.x);
+                normal = lerp(normal,stratum1Normal,mask0.y);
+                normal = lerp(normal,stratum2Normal,mask0.z);
+                normal = lerp(normal,stratum3Normal,mask0.w);
+                normal = lerp(normal,stratum4Normal,mask1.x);
+                normal = lerp(normal,stratum5Normal,mask1.y);
+                normal = lerp(normal,stratum6Normal,mask1.z);
+                normal = lerp(normal,stratum7Normal,mask1.w);
+                normal.xyz = normalize( normal.xyz );
+
+                return normal;
+            }
+            
+            float4 TerrainAlbedoXP( Input pixel)
+            {
+                float3 position = TerrainScale*pixel.mTexWT;
+
+                float4 mask0 = saturate(tex2D(UtilitySamplerA,position)*2-1);
+                float4 mask1 = saturate(tex2D(UtilitySamplerB,position)*2-1);
+
+                float4 lowerAlbedo = tex2D(LowerAlbedoSampler,position*LowerAlbedoTile);
+                float4 stratum0Albedo = StratumAlbedoSampler(0,position*Stratum0AlbedoTile);
+                float4 stratum1Albedo = StratumAlbedoSampler(1,position*Stratum1AlbedoTile);
+                float4 stratum2Albedo = StratumAlbedoSampler(2,position*Stratum2AlbedoTile);
+                float4 stratum3Albedo = StratumAlbedoSampler(3,position*Stratum3AlbedoTile);
+                float4 stratum4Albedo = StratumAlbedoSampler(4,position*Stratum4AlbedoTile);
+                float4 stratum5Albedo = StratumAlbedoSampler(5,position*Stratum5AlbedoTile);
+                float4 stratum6Albedo = StratumAlbedoSampler(6,position*Stratum6AlbedoTile);
+                float4 stratum7Albedo = StratumAlbedoSampler(7,position*Stratum7AlbedoTile);
+                float4 upperAlbedo = tex2D(UpperAlbedoSampler,position*UpperAlbedoTile);
+
+                float4 albedo = lowerAlbedo;
+                albedo = lerp(albedo,stratum0Albedo,mask0.x);
+                albedo = lerp(albedo,stratum1Albedo,mask0.y);
+                albedo = lerp(albedo,stratum2Albedo,mask0.z);
+                albedo = lerp(albedo,stratum3Albedo,mask0.w);
+                albedo = lerp(albedo,stratum4Albedo,mask1.x);
+                albedo = lerp(albedo,stratum5Albedo,mask1.y);
+                albedo = lerp(albedo,stratum6Albedo,mask1.z);
+                albedo = lerp(albedo,stratum7Albedo,mask1.w);
+                albedo.rgb = lerp(albedo.xyz,upperAlbedo.xyz,upperAlbedo.w);
 
                 return albedo;
             }
@@ -413,36 +473,55 @@ Shader "FAShaders/Terrain"
                 return Emit;
             }
 
+            // The decals get written directly in the gBuffer, so here we only prepare all necessary terrain inputs.
+            // The actual lighting calculations happen in Assets\GFX\Shaders\Deferred\Internal-DeferredShading.shader
+            // This way the decals and the terrain have consistent lighting
             void surf(Input inV, inout CustomSurfaceOutput o)
             {
-                float shaderNumber = 0;
-                float4 outColor;
-
-                if (shaderNumber == 0)
+                if (_ShaderID == 0)
                 {
-                    outColor = TerrainPS(inV);
-                    o.Albedo = outColor.rgb;
-                    o.Roughness = outColor.a; // for specularity
-                    float3 normal = TangentToWorldSpace(inV, TerrainNormalsPS(inV).xyz*2-1);
+                    float4 albedo = TerrainPS(inV);
+                    o.Albedo = albedo.rgb;
+                    o.Roughness = albedo.a; // for specularity
+
+                    float3 normal = TangentToWorldSpace(inV, TerrainNormalsPS(inV).xyz);
                     o.wNormal = normalize(normal);
 
                     float4 waterColor = GetWaterColor(tex2D(UtilitySamplerC, inV.mTexWT * TerrainScale).g);
                     o.WaterColor = waterColor.rgb;
                     o.WaterAbsorption = waterColor.a;
-
-                    float3 position = TerrainScale * inV.mTexWT.xyz;
-                    o.MapShadow = tex2D(UpperAlbedoSampler, position.xy).w;
                 }
-                // else if (shaderNumber == 1)
+                else if (_ShaderID == 1)
+                {
+                    float4 albedo = TerrainAlbedoXP(inV);
+                    o.Albedo = albedo.rgb;
+                    o.Roughness = albedo.a; // for specularity
+
+                    float3 normal = TangentToWorldSpace(inV, TerrainNormalsXP(inV).xyz);
+                    o.wNormal = normalize(normal);
+
+                    float4 waterColor = GetWaterColor(tex2D(UtilitySamplerC, inV.mTexWT * TerrainScale).g);
+                    o.WaterColor = waterColor.rgb;
+                    o.WaterAbsorption = waterColor.a;
+                }
+                // else if (_ShaderID == 3)
                 // {
-                //     outColor = TerrainXP(inV);
-                // }
-                // else if (shaderNumber == 2)
-                // {
-                //     outColor = Terrain001PS(inV);
+                //     float4 albedo = Terrain101AlbedoPS(inV);
+                //     o.Albedo = albedo.rgb;
+                //     o.Roughness = albedo.a;
+
+                //     float3 normal = TangentToWorldSpace(inV, Terrain101NormalsPS(inV).xyz);
+                //     o.wNormal = normalize(normal);
+
+                //     float4 waterColor = GetExponentialWaterColor(tex2D(UpperAlbedoSampler, inV.mTexWT * TerrainScale).b);
+                //     o.WaterColor = waterColor.rgb;
+                //     o.WaterAbsorption = waterColor.a;
+                    
+                //     float3 position = TerrainScale * inV.mTexWT.xyz;
+                //     o.MapShadow = tex2D(UpperAlbedoSampler, position.xy).w;
                 // }
                 else {
-                    o.Albedo = float4(1, 0, 1, 1);
+                    o.Albedo = float3(1, 0, 1);
                 }
 
                 // outColor = renderFog(outColor);
