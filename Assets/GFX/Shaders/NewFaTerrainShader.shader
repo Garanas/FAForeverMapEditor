@@ -482,12 +482,19 @@ Shader "FAShaders/Terrain"
                 float stratum6Height = sampleHeight(position.zw, Stratum6AlbedoTile.xx, Stratum6NormalTile.xx, float2(0.5, 0.5), false);
 
                 float3 normal = lowerNormal;
+                if(_HideStratum0 == 0)
                 normal = splatBlendNormal(normal, stratum0Normal, stratum0Height, mask0.x, SpecularColor.r);
+                if(_HideStratum1 == 0)
                 normal = splatBlendNormal(normal, stratum1Normal, stratum1Height, mask0.y, SpecularColor.r);
+                if(_HideStratum2 == 0)
                 normal = splatBlendNormal(normal, stratum2Normal, stratum2Height, mask0.z, SpecularColor.r);
+                if(_HideStratum3 == 0)
                 normal = splatBlendNormal(normal, stratum3Normal, stratum3Height, mask0.w, SpecularColor.r);
+                if(_HideStratum4 == 0)
                 normal = splatBlendNormal(normal, stratum4Normal, stratum4Height, mask1.x, SpecularColor.r);
+                if(_HideStratum5 == 0)
                 normal = splatBlendNormal(normal, stratum5Normal, stratum5Height, mask1.y, SpecularColor.r);
+                if(_HideStratum6 == 0)
                 normal = splatBlendNormal(normal, stratum6Normal, stratum6Height, mask1.z, SpecularColor.r);
 
                 return normal;
@@ -528,14 +535,22 @@ Shader "FAShaders/Terrain"
                 float stratum6Height = sampleHeight(position.zw, Stratum6AlbedoTile.xx, Stratum6NormalTile.xx, float2(0.5, 0.5), false);
 
                 float4 albedo = lowerAlbedo;
+                if(_HideStratum0 == 0)
                 albedo = splatLerp(albedo, stratum0Albedo, stratum0Height, mask0.x, SpecularColor.r);
+                if(_HideStratum1 == 0)
                 albedo = splatLerp(albedo, stratum1Albedo, stratum1Height, mask0.y, SpecularColor.r);
+                if(_HideStratum2 == 0)
                 albedo = splatLerp(albedo, stratum2Albedo, stratum2Height, mask0.z, SpecularColor.r);
+                if(_HideStratum3 == 0)
                 albedo = splatLerp(albedo, stratum3Albedo, stratum3Height, mask0.w, SpecularColor.r);
+                if(_HideStratum4 == 0)
                 albedo = splatLerp(albedo, stratum4Albedo, stratum4Height, mask1.x, SpecularColor.r);
+                if(_HideStratum5 == 0)
                 albedo = splatLerp(albedo, stratum5Albedo, stratum5Height, mask1.y, SpecularColor.r);
+                if(_HideStratum6 == 0)
                 albedo = splatLerp(albedo, stratum6Albedo, stratum6Height, mask1.z, SpecularColor.r);
                 float4 mapwide = StratumAlbedoSampler(7, position.xy);
+                if(_HideStratum7 == 0)
                 albedo.rgb = lerp(albedo.rgb, mapwide.rgb, mapwide.a);
 
                 // We need to add 0.01 as the reflection disappears at 0
