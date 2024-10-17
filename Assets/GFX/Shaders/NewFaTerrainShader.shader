@@ -706,7 +706,7 @@ Shader "FAShaders/Terrain"
                     float3 normal = TangentToWorldSpace(inV, Terrain301NormalsPS(inV, true).xyz);
                     o.wNormal = normalize(normal);
 
-                    o.WaterDepth = tex2D(UpperAlbedoSampler, position.xy).r;
+                    o.WaterDepth = tex2D(UpperAlbedoSampler, position.xy).b;
                  
                     o.MapShadow = tex2D(UpperAlbedoSampler, position.xy).w;
                 }
