@@ -25,14 +25,7 @@ Shader "FAShaders/Water" {
     SubShader {
     	Tags { "Queue"="Transparent+6" "RenderType"="Transparent" }
 
-	    GrabPass 
-	     {
-	     "RefractionSampler"
-	     } 
-
-		//Blend SrcAlpha OneMinusSrcAlpha
-		//Offset 0, -20000
-
+	    GrabPass { "RefractionSampler" } 
 
 		CGPROGRAM
 		#pragma target 3.5
@@ -78,21 +71,14 @@ Shader "FAShaders/Water" {
 
 
 		struct Input {
-	        //float4 position 	: 	SV_POSITION;
-			float2 uvUtilitySamplerC : TEXCOORD0;
-			float2 mLayer0;
-			float2 mLayer1;
-			float2 mLayer2;
-			float2 mLayer3;
-			//float2 mLayer2      : 	TEXCOORD3;
-		    //float2 mLayer3      : 	TEXCOORD4;	
-			float3 mViewVec     : 	TEXCOORD3;
-			float4 mScreenPos	: 	TEXCOORD4;
-			float4 AddVar		: 	TEXCOORD5;
-			float2 mTexUV;
-			float4 grabUV;
+			float2 mLayer0    : TEXCOORD0;
+			float2 mLayer1    : TEXCOORD1;
+			float2 mLayer2    : TEXCOORD2;
+			float2 mLayer3    : TEXCOORD3;
+			float3 mViewVec   : TEXCOORD4;
+			float4 mScreenPos : TEXCOORD5;
+			float2 mTexUV     : TEXCOORD6;
 			float3 worldPos;
-			//float3 viewDir;
 		};
 
 		void vert (inout appdata_full v, out Input result){
@@ -114,10 +100,6 @@ Shader "FAShaders/Water" {
 			// The game uses a different coordinate system, so we need to correct for that
 			ViewVec.z *= -1;
 			result.mViewVec = ViewVec;
-
-	        result.AddVar = float4(length(_WorldSpaceCameraPos - mul(unity_ObjectToWorld, v.vertex).xyz), 0, 0, 0);
-			float4 hpos = UnityObjectToClipPos (v.vertex);
-	        result.grabUV = ComputeGrabScreenPos(hpos);
 		}
 
 		float FresnelSchlick(float dot, float F0)
@@ -190,7 +172,6 @@ Shader "FAShaders/Water" {
 		}
 	    
 	   void surf (Input inV, inout SurfaceOutput o) {
-		   	ViewportScaleOffset = float4(1, -1, 0, 1);
 		   	ViewportScaleOffset = float4(1, 1, 0, 0);
 			waveCrestColor = float3(1,1,1);
 			waveCrestThreshold = 1;
