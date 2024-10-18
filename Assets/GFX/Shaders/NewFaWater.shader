@@ -4,7 +4,6 @@ Shader "FAShaders/Water" {
 		sunColor  ("Sun Color", Color) = (1.1, 0.7, 0.5, 1)
 		_WaterData ("Water Data", 2D) = "white" {}
 		SkySampler("SkySampler", CUBE) = "" {}
-		ReflectionSampler ("ReflectionSampler", 2D) = "white" {}
 		
 		NormalSampler0 ("NormalSampler0", 2D) = "white" {}
 		NormalSampler1 ("NormalSampler1", 2D) = "white" {}
@@ -36,13 +35,12 @@ Shader "FAShaders/Water" {
 		//************ FA Water Params
 		float4 ViewportScaleOffset;
 
-		float waveCrestThreshold = 1;
-		float3 waveCrestColor = float3(1,1,1);
+		float waveCrestThreshold;
+		float3 waveCrestColor;
 
 		samplerCUBE SkySampler;
 	    sampler2D NormalSampler0, NormalSampler1, NormalSampler2, NormalSampler3;
 		sampler2D RefractionSampler;
-	    sampler2D ReflectionSampler;
 		sampler2D UtilitySamplerC;
 
 	    float4 waterColor;
@@ -51,12 +49,12 @@ Shader "FAShaders/Water" {
 		float unitreflectionAmount;
 		float skyreflectionAmount;
 
-		float4 normalRepeatRate = float4(0.0009, 0.009, 0.05, 0.5);
+		float4 normalRepeatRate;
 
-		float2 normal1Movement = float2(5.5, -9.95);
-		float2 normal2Movement = float2(0.05, -0.095);
-		float2 normal3Movement = float2(0.01, 0.03);
-		float2 normal4Movement = float2(0.0005, 0.0009);
+		float2 normal1Movement;
+		float2 normal2Movement;
+		float2 normal3Movement;
+		float2 normal4Movement;
 
 		float SunShininess;
 	    float3 SunDirection;
@@ -93,8 +91,8 @@ Shader "FAShaders/Water" {
 		void vert (inout appdata_full v, out Input result){
 			UNITY_INITIALIZE_OUTPUT(Input,result);
 
-	        result.mTexUV = v.vertex * float2(-1, 1) + float2(1 / _WaterScaleX + 1, 1 / _WaterScaleZ);
-	        
+	        result.mTexUV = v.vertex.xz * float2(1, -1);
+
 	        result.mScreenPos = ComputeNonStereoScreenPos(UnityObjectToClipPos (v.vertex));
 
 			float2 WaterLayerUv = float2(v.vertex.x * _WaterScaleX, -v.vertex.z * _WaterScaleZ);
@@ -104,7 +102,11 @@ Shader "FAShaders/Water" {
 	        result.mLayer2 = (WaterLayerUv + (normal3Movement * timer)) * normalRepeatRate.z;
 	        result.mLayer3 = (WaterLayerUv + (normal4Movement * timer)) * normalRepeatRate.w;
 	        
-	        result.mViewVec = mul (unity_ObjectToWorld, v.vertex).xyz - _WorldSpaceCameraPos;
+	        float3 ViewVec = _WorldSpaceCameraPos - mul(unity_ObjectToWorld, v.vertex).xyz;
+			ViewVec = normalize (ViewVec);
+			// The game uses a different coordinate system, so we need to correct for that
+			ViewVec.z *= -1;
+			result.mViewVec = ViewVec;
 
 	        result.AddVar = float4(length(_WorldSpaceCameraPos - mul(unity_ObjectToWorld, v.vertex).xyz), 0, 0, 0);
 			float4 hpos = UnityObjectToClipPos (v.vertex);
@@ -178,6 +180,10 @@ Shader "FAShaders/Water" {
 		}
 	    
 	   void surf (Input inV, inout SurfaceOutput o) {
+		   	ViewportScaleOffset = float4(1, -1, 0, 1);
+		   	ViewportScaleOffset = float4(1, 1, 0, 0);
+			waveCrestColor = float3(1,1,1);
+			waveCrestThreshold = 1;
 	    
 			// calculate the depth of water at this pixel
 			float4 waterTexture = tex2D( UtilitySamplerC, inV.mTexUV );
@@ -191,12 +197,6 @@ Shader "FAShaders/Water" {
 			inV.mScreenPos.xyz *= OneOverW;
 			float2 screenPos = inV.mScreenPos.xy * ViewportScaleOffset.xy;
 			screenPos += ViewportScaleOffset.zw;
-
-			// get the unaltered sea floor
-			float4 backGroundPixels = tex2D(RefractionSampler, screenPos);
-			// because the alpha value holds the unit parts above water and uses a small value
-			// for the land cutout, we multiply by a large number and then saturate
-			float mask = saturate(backGroundPixels.a * 255);
 
 			// calculate the normal we will be using for the water surface
 			float4 W0 = tex2D( NormalSampler0, inV.mLayer0 );
@@ -217,25 +217,15 @@ Shader "FAShaders/Water" {
 			float2 refractionPos = screenPos;
 			refractionPos -= sqrt(waterDepth) * refractionScale * N.xz * OneOverW;
 
-			// keep in mind the alpha channel holds the unit parts above water
-			// specifically the alpha channel of that unit's shader
 			float4 refractedPixels = tex2D(RefractionSampler, refractionPos);
+			// the editor doesn't have info about unit reflections, so we will skip these operations here
 
-			// we need to exclude the unit refraction above the water line. This creats small areas with
-			// no refraction, but the water color in the next step will make this mostly unnoticeable
-			refractedPixels.xyz = lerp(refractedPixels, backGroundPixels, saturate(refractedPixels.a * 255)).xyz;
 			// we want to lerp in the water color based on depth, but clamped
 			float factor = clamp(waterDepth, waterLerp.x, waterLerp.y);
-			refractedPixels.xyz = lerp(refractedPixels.xyz, waterColor, factor);
-
-			// We can't compute wich part of the unit we would hit with our reflection vector,
-			// so we have to resort to an approximation using the refractionPos
-			float4 reflectedPixels = tex2D(ReflectionSampler, refractionPos);
+			refractedPixels.rgb = lerp(refractedPixels.rgb, waterColor, factor);
 
 			float4 skyReflection = texCUBE(SkySampler, R);
-			// The alpha channel acts as a mask for unit parts above the water and probably
-			// uses unitReflectionAmount as the positive value of the mask
-			reflectedPixels.xyz = lerp(skyReflection.xyz, reflectedPixels.xyz, saturate(reflectedPixels.a));
+			float3 reflections = skyReflection.rgb;
    
    			// Schlick approximation for fresnel
 			float NDotV = saturate(dot(viewVector, N));
@@ -244,22 +234,21 @@ Shader "FAShaders/Water" {
 			// the default value of 1.5 is way to high, but we want to preserve manually set values in existing maps
 			if (skyreflectionAmount == 1.5)
 				skyreflectionAmount = 1.0;
-			refractedPixels = lerp(refractedPixels, reflectedPixels, saturate(fresnel * skyreflectionAmount));
+			float3 water = lerp(refractedPixels, reflections, saturate(fresnel * skyreflectionAmount));
 
 			// add in the sun reflection
 			float3 sunReflection = calculateSunReflection(R, viewVector, N);
-			// the sun shouldn't be visible where a unit reflection is
-			sunReflection *= (1 - saturate(reflectedPixels.a * 4));
 			// we can control this value to have terrain cast a shadow on the water surface
 			sunReflection *= waterTexture.r;
-			refractedPixels.xyz += sunReflection;
+			water += sunReflection;
 
 			// Lerp in the wave crests
-			refractedPixels.xyz = lerp(refractedPixels.xyz, waveCrestColor, (1 - waterTexture.a) * (1 - waterTexture.b) * waveCrest);
+			water = lerp(water, waveCrestColor, (1 - waterTexture.a) * (1 - waterTexture.b) * waveCrest);
 
-			// return the pixels masked out by the water mask
-			float4 returnPixels = refractedPixels;
-			returnPixels.a = 1 - mask;
+			// in contrast to the game we don't need an alpha mask here to combat artifacts
+			float4 returnPixels;
+			returnPixels.rgb = water;
+			returnPixels.a = 1;
 
 
 			if(_Area > 0){
