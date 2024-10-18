@@ -1,4 +1,9 @@
-﻿
+﻿float3 ShadowFillColor;
+float LightingMultiplier;
+float3 SunDirection;
+float3 SunAmbience;
+float3 SunColor;
+
 struct CustomSurfaceOutput
 {
     fixed3 Albedo;
@@ -13,10 +18,14 @@ struct CustomSurfaceOutput
     float3 Normal;
 };
 			
-inline float4 LightingSimpleLambertLight(CustomSurfaceOutput s, UnityLight light)
+inline float4 LightingSimpleLambertLight(CustomSurfaceOutput s, UnityLight l)
 {
     float4 c;
-	c.rgb = s.Albedo;
+    s.Normal.z *= -1;
+    float dotLightNormal = dot(SunDirection, s.Normal);
+    float3 light = SunColor * saturate(dotLightNormal) * 1 + SunAmbience;
+    light = LightingMultiplier * light + (1 - light) * ShadowFillColor;
+	c.rgb = s.Albedo * light;
     c.a = s.Alpha;
 	return c;
 }

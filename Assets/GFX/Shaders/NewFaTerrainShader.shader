@@ -135,11 +135,7 @@ Shader "FAShaders/Terrain"
 
             uniform int _ShaderID;
 
-            float3 ShadowFillColor;
-            float LightingMultiplier;
-            float3 SunDirection;
-            float3 SunAmbience;
-            float3 SunColor;
+            // Most light values are already defined in SimpleLambert
             float4 SpecularColor;
             float WaterElevation;
 
