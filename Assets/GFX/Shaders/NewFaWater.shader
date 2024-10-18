@@ -18,7 +18,7 @@ Shader "FAShaders/Water" {
 
 	    GrabPass 
 	     {
-	     "_WaterGrabTexture"
+	     "RefractionSampler"
 	     } 
 
 		//Blend SrcAlpha OneMinusSrcAlpha
@@ -33,239 +33,248 @@ Shader "FAShaders/Water" {
 			#pragma multi_compile ___ UNITY_HDR_ON
 
 
-		//************ Water Params
-		
-		uniform float _WaterScaleX, _WaterScaleZ;
+		//************ FA Water Params
+		float4 ViewportScaleOffset;
+
 		float waveCrestThreshold = 1;
 		float3 waveCrestColor = float3(1,1,1);
-		float refractionScale = 0.015;
 
-		// 3 repeat rate for 3 texture layers
-		float4  normalRepeatRate = float4(0.0009, 0.009, 0.05, 0.5);
+		samplerCUBE SkySampler;
+	    sampler2D NormalSampler0, NormalSampler1, NormalSampler2, NormalSampler3;
+		sampler2D RefractionSampler;
+	    sampler2D ReflectionSampler;
+		sampler2D UtilitySamplerC;
 
-		// 3 vectors of normal movements
-		//float2 normal1Movement = float2(0.5, -0.95);
+	    float4 waterColor;
+		float2 waterLerp;
+		float refractionScale;
+		float unitreflectionAmount;
+		float skyreflectionAmount;
+
+		float4 normalRepeatRate = float4(0.0009, 0.009, 0.05, 0.5);
+
 		float2 normal1Movement = float2(5.5, -9.95);
 		float2 normal2Movement = float2(0.05, -0.095);
 		float2 normal3Movement = float2(0.01, 0.03);
 		float2 normal4Movement = float2(0.0005, 0.0009);
 
-		float fresnelBias = 0.1;
-		float fresnelPower = 1.5;
-
 		float SunShininess;
-		float sunReflectionAmount;
-		float unitreflectionAmount;
-		float skyreflectionAmount;
-		float2 waterLerp;
 	    float3 SunDirection;
+		float4 SunColor;
 
-		float SunGlow;
+		//*********** End FA Water Params
 
-	    fixed4 waterColor, sunColor;
+		uniform float _WaterScaleX, _WaterScaleZ;
 		half _GridScale;
-		
 		int _Area;
 		half4 _AreaRect;
 		
-		//*********** End Water Params
 		sampler2D _WaterGrabTexture;
 
-
-		half4 LightingEmpty (SurfaceOutput s, half3 lightDir, half atten) {
-					half4 c;
-			            c.rgb = s.Albedo;
-			            c.a = s.Alpha;
-			            return c;
-			        }
 
 		struct Input {
 	        //float4 position 	: 	SV_POSITION;
 			float2 uvUtilitySamplerC : TEXCOORD0;
-			float4 mLayer01      : 	TEXCOORD1;
-			float4 mLayer23      : 	TEXCOORD2;
+			float2 mLayer0;
+			float2 mLayer1;
+			float2 mLayer2;
+			float2 mLayer3;
 			//float2 mLayer2      : 	TEXCOORD3;
 		    //float2 mLayer3      : 	TEXCOORD4;	
 			float3 mViewVec     : 	TEXCOORD3;
 			float4 mScreenPos	: 	TEXCOORD4;
 			float4 AddVar		: 	TEXCOORD5;
+			float2 mTexUV;
 			float4 grabUV;
 			float3 worldPos;
 			//float3 viewDir;
 		};
 
-		void vert (inout appdata_full v, out Input o){
-			UNITY_INITIALIZE_OUTPUT(Input,o);
-	        //o.position = UnityObjectToClipPos (v.vertex);
-	        o.mScreenPos = ComputeNonStereoScreenPos(UnityObjectToClipPos (v.vertex));
-	        //o.mScreenPos.xy /=  o.mScreenPos.w;
-	        //o.mScreenPos.xy /= _ScreenParams.xy * 0.1;
+		void vert (inout appdata_full v, out Input result){
+			UNITY_INITIALIZE_OUTPUT(Input,result);
+
+	        result.mTexUV = v.vertex * float2(-1, 1) + float2(1 / _WaterScaleX + 1, 1 / _WaterScaleZ);
 	        
-	        //o.mTexUV = v.texcoord0;
+	        result.mScreenPos = ComputeNonStereoScreenPos(UnityObjectToClipPos (v.vertex));
+
 			float2 WaterLayerUv = float2(v.vertex.x * _WaterScaleX, -v.vertex.z * _WaterScaleZ);
-	        //o.mLayer0 = (WaterLayerUv * _WaterScale + (float2(5.5, -9.95) * _Time.y)) * 0.0009;
-	        //o.mLayer1 = (WaterLayerUv * _WaterScale + (float2(0.05, -0.095) * _Time.y)) * 0.09;
-	        //o.mLayer2 = (WaterLayerUv * _WaterScale + (float2(0.01, 0.03) * _Time.y)) * 0.05;
-	        //o.mLayer3 = (WaterLayerUv * _WaterScale + (float2(0.0005, 0.0009) * _Time.y)) * 0.5;
-
 			float timer = _Time.y * 10;
-			o.mLayer01.xy = (WaterLayerUv + (normal1Movement * timer)) * normalRepeatRate.x;
-	        o.mLayer01.zw = (WaterLayerUv + (normal2Movement * timer)) * normalRepeatRate.y;
-	        o.mLayer23.xy = (WaterLayerUv + (normal3Movement * timer)) * normalRepeatRate.z;
-	        o.mLayer23.zw = (WaterLayerUv + (normal4Movement * timer)) * normalRepeatRate.w;
-
-	        //o.mScreenPos = mul (UNITY_MATRIX_MVP, float4(0,0,0,1));
-	        //o.mScreenPos.xy /= o.mScreenPos.w;
+			result.mLayer0 = (WaterLayerUv + (normal1Movement * timer)) * normalRepeatRate.x;
+	        result.mLayer1 = (WaterLayerUv + (normal2Movement * timer)) * normalRepeatRate.y;
+	        result.mLayer2 = (WaterLayerUv + (normal3Movement * timer)) * normalRepeatRate.z;
+	        result.mLayer3 = (WaterLayerUv + (normal4Movement * timer)) * normalRepeatRate.w;
 	        
-	        o.mViewVec = mul (unity_ObjectToWorld, v.vertex).xyz - _WorldSpaceCameraPos;
-	        o.mViewVec = normalize(o.mViewVec);
-	        o.AddVar = float4(length(_WorldSpaceCameraPos - mul(unity_ObjectToWorld, v.vertex).xyz), 0, 0, 0);
-			 float4 hpos = UnityObjectToClipPos (v.vertex);
-	         o.grabUV = ComputeGrabScreenPos(hpos);
-			//v.color = _Abyss;
+	        result.mViewVec = mul (unity_ObjectToWorld, v.vertex).xyz - _WorldSpaceCameraPos;
+
+	        result.AddVar = float4(length(_WorldSpaceCameraPos - mul(unity_ObjectToWorld, v.vertex).xyz), 0, 0, 0);
+			float4 hpos = UnityObjectToClipPos (v.vertex);
+	        result.grabUV = ComputeGrabScreenPos(hpos);
 		}
 
+		float FresnelSchlick(float dot, float F0)
+		{
+			return F0 + (1.0 - F0) * pow(1.0 - dot, 5.0);
+		}
 
-	    uniform sampler2D UtilitySamplerC;
-	    uniform sampler2D RefractionSampler;
-	    sampler2D  ReflectionSampler;
-		sampler2D _ReflectionTexture;
-	    uniform sampler2D NormalSampler0, NormalSampler1, NormalSampler2, NormalSampler3;
-		//samplerCUBE _Reflection;
-		samplerCUBE SkySampler;
+		float NormalDistribution(float3 n, float3 h, float roughness)
+		{
+			float a2 = roughness*roughness;
+			float nDotH = max(dot(n, h), 0.0);
+			float nDotH2 = nDotH*nDotH;
 
+			float num = a2;
+			float denom = nDotH2 * (a2 - 1.0) + 1.0;
+			denom = 3.14159265359 * denom * denom;
+
+			return num / denom;
+		}
+
+		float GeometrySchlick(float nDotV, float roughness)
+		{
+			float r = (roughness + 1.0);
+			float k = (r*r) / 8.0;
+
+			float num = nDotV;
+			float denom = nDotV * (1.0 - k) + k;
+
+			return num / denom;
+		}
+
+		float GeometrySmith(float3 n, float nDotV, float3 l, float roughness)
+		{
+			float nDotL = max(dot(n, l), 0.0);
+			float gs2 = GeometrySchlick(nDotV, roughness);
+			float gs1 = GeometrySchlick(nDotL, roughness);
+
+			return gs1 * gs2;
+		}
+
+		float3 calculateSunReflection(float3 R, float3 v, float3 n)
+		{
+			float3 color;
+			// Legacy fallback for the old behaviour, so we don't change all maps accidentally.
+			// This check works because the default sun position is under the horizon.
+			if (SunDirection.y < 0.0) {
+				float3 sunReflection = pow(saturate(dot(-R, SunDirection)), SunShininess) * SunColor;
+				color = sunReflection * FresnelSchlick(max(dot(n, v), 0.0), 0.06);
+			} else {
+			float roughness = 1.0 / SunShininess;
+			float facingSpecular = 0.02;
+			float3 l = SunDirection;
+			float3 h = normalize(v + l);
+			float nDotL = max(dot(n, l), 0.0);
+			float nDotV = abs(dot(n, v)) + 0.001;
+			float3 F = FresnelSchlick(max(dot(h, v), 0.0), facingSpecular).xxx;
+			float NDF = NormalDistribution(n, h, roughness);
+			float G = GeometrySmith(n, nDotV, l, roughness);
+
+			float3 numerator = 3.14159265359 * NDF * G * F;
+			// add 0.0001 to avoid division by zero
+			float denominator = 4.0 * nDotV * nDotL + 0.0001;
+			float3 reflected = numerator / denominator;
+			color = reflected * SunColor * nDotL;
+			}
+			return color;
+		}
 	    
-	   void surf (Input IN, inout SurfaceOutput o) {
+	   void surf (Input inV, inout SurfaceOutput o) {
 	    
-	    	float4 ViewportScaleOffset = float4((_ScreenParams.x / _ScreenParams.y) * 1, 1.0, (_ScreenParams.x / _ScreenParams.y) * -0.25, 0);
-	    	//float3 SunDirection = normalize(float3( -0.2 , -0.967, -0.453));
-	    	// calculate the depth of water at this pixel, we use this to decide
-			// how to shade and it should become lesser as we get shallower
-			// so that we don't have a sharp line
-	    	float4 waterTexture = tex2D( UtilitySamplerC, IN.uvUtilitySamplerC * float2(-1, 1) + float2(1 / (_WaterScaleX * 1) + 1, 1 / (_WaterScaleZ * 1)) );
-			
-			
-			float waterDepth = clamp( waterTexture.g * 10, 0, 1);
-			
-	        // calculate the correct viewvector
-			float3 viewVector = normalize(IN.mViewVec);
-			//viewVector = WorldSpaceViewDir(float4(0, 0, 1, 1));
-			//viewVector = IN.viewDir;
-			float OneOverW = 1 / IN.mScreenPos.w;
+			// calculate the depth of water at this pixel
+			float4 waterTexture = tex2D( UtilitySamplerC, inV.mTexUV );
+			float waterDepth =  waterTexture.g;
 
+			float3 viewVector = normalize(inV.mViewVec);
 
-			// calculate the background pixel
-			float4 backGroundPixels = tex2Dproj( _WaterGrabTexture, UNITY_PROJ_COORD(IN.grabUV) );
+			// get perspective correct coordinate for sampling from the other textures
+			// the screenPos is then in 0..1 range with the origin at the top left of the screen
+			float OneOverW = 1.0 / inV.mScreenPos.w;
+			inV.mScreenPos.xyz *= OneOverW;
+			float2 screenPos = inV.mScreenPos.xy * ViewportScaleOffset.xy;
+			screenPos += ViewportScaleOffset.zw;
 
-			#ifdef UNITY_HDR_ON
-			//backGroundPixels.rgb = exp2(-backGroundPixels.rgb);
-			#endif
-			//float4 col = tex2Dproj( _MyGrabTexture3, UNITY_PROJ_COORD(IN.grabUV));
-
+			// get the unaltered sea floor
+			float4 backGroundPixels = tex2D(RefractionSampler, screenPos);
+			// because the alpha value holds the unit parts above water and uses a small value
+			// for the land cutout, we multiply by a large number and then saturate
 			float mask = saturate(backGroundPixels.a * 255);
-	    
-	        // calculate the normal we will be using for the water surface
-		    float4 W0 = tex2D( NormalSampler0, IN.mLayer01.xy );
-			float4 W1 = tex2D( NormalSampler1, IN.mLayer01.zw );
-			float4 W2 = tex2D( NormalSampler2, IN.mLayer23.xy );
-			float4 W3 = tex2D( NormalSampler3, IN.mLayer23.zw );
 
-		    float4 sum = W0 + W1 + W2 + W3;
-			waveCrestThreshold = 1.2;
-		    float waveCrest = saturate( sum.a - waveCrestThreshold );
-		    
-		    // average, scale, bias and normalize
+			// calculate the normal we will be using for the water surface
+			float4 W0 = tex2D( NormalSampler0, inV.mLayer0 );
+			float4 W1 = tex2D( NormalSampler1, inV.mLayer1 );
+			float4 W2 = tex2D( NormalSampler2, inV.mLayer2 );
+			float4 W3 = tex2D( NormalSampler3, inV.mLayer3 );
+
+			float4 sum = W0 + W1 + W2 + W3;
+			float waveCrest = saturate( sum.a - waveCrestThreshold );
+    
+			// scale, bias and normalize
 			float3 N = 2.0 * sum.xyz - 4.0;
-			
-			// flatness
-		   	N = normalize(N.xzy); 
-		    float3 up = float3(0, 1, 0);
-		  	N = lerp(up, N, waterTexture.r);
-		    
-		    // calculate the reflection vector
-			float3 R = reflect( viewVector, N );
-	    
-	        // calculate the sky reflection color
-			float4 skyReflection = texCUBE( SkySampler, R );
-	    		    	
-	    	// get the correct coordinate for sampling refraction and reflection
+			N = normalize(N.xzy); 
+        
+			float3 R = reflect(-viewVector, N);
 
-			float2 screenPos = UNITY_PROJ_COORD(IN.mScreenPos.xy / IN.mScreenPos.w);
+			// get the correct coordinate for sampling refraction and reflection
+			float2 refractionPos = screenPos;
+			refractionPos -= sqrt(waterDepth) * refractionScale * N.xz * OneOverW;
 
-			float4 refractionPos = IN.mScreenPos;
-			refractionPos.xy -= refractionScale * N.xz * OneOverW * 0.1;
+			// keep in mind the alpha channel holds the unit parts above water
+			// specifically the alpha channel of that unit's shader
+			float4 refractedPixels = tex2D(RefractionSampler, refractionPos);
 
-			float4 GrabUvPos = IN.grabUV;
-			GrabUvPos.xy -= N.xz * OneOverW * 0.1 * refractionScale;
-			//GrabUvPos.xy = clamp(GrabUvPos.xy, 0, 1);
-			// calculate the refract pixel, corrected for fetching a non-refractable pixel
-			float4 refractedPixels = tex2Dproj(_WaterGrabTexture, UNITY_PROJ_COORD(GrabUvPos)); // UNITY_PROJ_COORD(IN.grabUV)
-		    // because the range of the alpha value that we use for the water is very small
-		    // we multiply by a large number and then saturate
-		    // this will also help in the case where we filter to an intermediate value
-		    refractedPixels.xyz = lerp(refractedPixels, backGroundPixels, saturate((IN.AddVar.x - 40) / 30 ) ).xyz; //255
+			// we need to exclude the unit refraction above the water line. This creats small areas with
+			// no refraction, but the water color in the next step will make this mostly unnoticeable
+			refractedPixels.xyz = lerp(refractedPixels, backGroundPixels, saturate(refractedPixels.a * 255)).xyz;
+			// we want to lerp in the water color based on depth, but clamped
+			float factor = clamp(waterDepth, waterLerp.x, waterLerp.y);
+			refractedPixels.xyz = lerp(refractedPixels.xyz, waterColor, factor);
 
-			// 
-			// calculate the reflected value at this pixel
-			//
-			float4 reflectedPixels = tex2D( _ReflectionTexture, refractionPos);
+			// We can't compute wich part of the unit we would hit with our reflection vector,
+			// so we have to resort to an approximation using the refractionPos
+			float4 reflectedPixels = tex2D(ReflectionSampler, refractionPos);
 
+			float4 skyReflection = texCUBE(SkySampler, R);
+			// The alpha channel acts as a mask for unit parts above the water and probably
+			// uses unitReflectionAmount as the positive value of the mask
+			reflectedPixels.xyz = lerp(skyReflection.xyz, reflectedPixels.xyz, saturate(reflectedPixels.a));
+   
+   			// Schlick approximation for fresnel
+			float NDotV = saturate(dot(viewVector, N));
+			float fresnel = FresnelSchlick(NDotV, 0.08);
 
-			float  NDotL = saturate(dot(-viewVector, N));
-			float fresnel = saturate(pow(saturate((1 - NDotL)), fresnelPower) + fresnelBias);
+			// the default value of 1.5 is way to high, but we want to preserve manually set values in existing maps
+			if (skyreflectionAmount == 1.5)
+				skyreflectionAmount = 1.0;
+			refractedPixels = lerp(refractedPixels, reflectedPixels, saturate(fresnel * skyreflectionAmount));
 
-			// figure out the sun reflection
-			float SunDotR = saturate(dot(-R, SunDirection));
-    		float3 sunReflection = pow( SunDotR, SunShininess) * sunColor.rgb * 2;
+			// add in the sun reflection
+			float3 sunReflection = calculateSunReflection(R, viewVector, N);
+			// the sun shouldn't be visible where a unit reflection is
+			sunReflection *= (1 - saturate(reflectedPixels.a * 4));
+			// we can control this value to have terrain cast a shadow on the water surface
+			sunReflection *= waterTexture.r;
+			refractedPixels.xyz += sunReflection;
 
-    		// lerp the reflections together
-   			reflectedPixels = lerp( skyReflection, reflectedPixels, saturate(unitreflectionAmount * reflectedPixels.w));
-			//reflectedPixels = skyReflection;
-   			
-   			// we want to lerp in some of the water color based on depth, but
-			// not totally on depth as it gets clamped
-			float waterLerp2 = clamp(waterDepth, waterLerp.x, waterLerp.y);
-			
-			// lerp in the color
-			refractedPixels.xyz = lerp( refractedPixels.xyz, waterColor.rgb * 2, waterLerp2);
-			
-			// implement the water depth into the reflection
-		    float depthReflectionAmount = 10;
-		    skyreflectionAmount *= saturate(waterDepth * depthReflectionAmount);
-		    
-		   	// lerp the reflection into the refraction   
-			refractedPixels = lerp( refractedPixels, reflectedPixels, saturate(skyreflectionAmount * fresnel));
-			//refractedPixels = skyReflection;
-			//refractedPixels = 
-			
-			// add in the sky reflection
-			sunReflection = sunReflection * fresnel;
-		    refractedPixels.xyz += sunReflection;
+			// Lerp in the wave crests
+			refractedPixels.xyz = lerp(refractedPixels.xyz, waveCrestColor, (1 - waterTexture.a) * (1 - waterTexture.b) * waveCrest);
 
-			// Lerp in a wave crest
-			waveCrestColor = float3(1,1,1);
-			refractedPixels.xyz = lerp( refractedPixels.xyz, waveCrestColor, ( 1 - waterTexture.a ) * waveCrest);
-		    
-
-    		float4 returnPixels = refractedPixels;
-
-			returnPixels.a = waterDepth;
-			//clip(waterDepth - 0.01);
+			// return the pixels masked out by the water mask
+			float4 returnPixels = refractedPixels;
+			returnPixels.a = 1 - mask;
 
 
 			if(_Area > 0){
 				fixed3 BlackEmit = -1;
 				fixed3 Albedo = 0;
-				if(IN.worldPos.x < _AreaRect.x){
+				if(inV.worldPos.x < _AreaRect.x){
 					returnPixels.rgb = 0;
 				}
-				else if(IN.worldPos.x > _AreaRect.z){
+				else if(inV.worldPos.x > _AreaRect.z){
 					returnPixels.rgb = 0;
 				}
-				else if(IN.worldPos.z < _AreaRect.y - _GridScale){
+				else if(inV.worldPos.z < _AreaRect.y - _GridScale){
 					returnPixels.rgb = 0;
 				}
-				else if(IN.worldPos.z > _AreaRect.w - _GridScale){
+				else if(inV.worldPos.z > _AreaRect.w - _GridScale){
 					returnPixels.rgb = 0;
 				}
 			}
