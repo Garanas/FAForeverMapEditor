@@ -38,7 +38,7 @@ Shader "FAShaders/Water" {
 		#pragma target 3.5
 
 		#pragma surface surf Lambert vertex:vert alpha noambient 
-			#pragma exclude_renderers gles
+		#pragma exclude_renderers gles
 
 
 		//************ FA Water Params
@@ -160,6 +160,9 @@ Shader "FAShaders/Water" {
 
 		float3 calculateSunReflection(float3 R, float3 v, float3 n)
 		{
+			// for unknown reasons the game seems to silently double the SunColor
+			SunColor *= 2;
+
 			float3 color;
 			// Legacy fallback for the old behaviour, so we don't change all maps accidentally.
 			// This check works because the default sun position is under the horizon.
