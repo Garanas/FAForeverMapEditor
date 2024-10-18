@@ -1,4 +1,4 @@
-﻿Shader "MapEditor/FaWater" {
+Shader "FAShaders/Water" {
 	Properties {
 		waterColor  ("waterColor", Color) = (0.0, 0.7, 1.5, 1)
 		sunColor  ("Sun Color", Color) = (1.1, 0.7, 0.5, 1)
