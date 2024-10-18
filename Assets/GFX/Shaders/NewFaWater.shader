@@ -1,14 +1,24 @@
 Shader "FAShaders/Water" {
 	Properties {
-		waterColor  ("waterColor", Color) = (0.0, 0.7, 1.5, 1)
-		sunColor  ("Sun Color", Color) = (1.1, 0.7, 0.5, 1)
-		_WaterData ("Water Data", 2D) = "white" {}
+		waterColor  ("waterColor", Color) = (0, 0, 0, 0)
+		SunColor  ("Sun Color", Color) = (0, 0, 0, 0)
+		waterLerp ("water Lerp", Vector) = (0, 0, 0, 0)
+		SunDirection  ("Sun Direction", Vector) = (0, 0, 0, 0)
+		SunShininess ("SunShininess", Float) = 0
+		skyreflectionAmount ("sky reflection Amount", Float) = 0
+		refractionScale ("refraction Scale", Float) = 0
+		normal1Movement ("normal 1 movement", Vector) = (0, 0, 0, 0)
+		normal2Movement ("normal 2 movement", Vector) = (0, 0, 0, 0)
+		normal3Movement ("normal 3 movement", Vector) = (0, 0, 0, 0)
+		normal4Movement ("normal 4 movement", Vector) = (0, 0, 0, 0)
+		normalRepeatRate ("normal repeat rate", Vector) = (0, 0, 0, 0)
+
 		SkySampler("SkySampler", CUBE) = "" {}
-		
 		NormalSampler0 ("NormalSampler0", 2D) = "white" {}
 		NormalSampler1 ("NormalSampler1", 2D) = "white" {}
 		NormalSampler2 ("NormalSampler2", 2D) = "white" {}
 		NormalSampler3 ("NormalSampler3", 2D) = "white" {}
+		UtilitySamplerC ("water properties", 2D) = "white" {}
 
 		_GridScale ("Grid Scale", Range (0, 2048)) = 512
 	}
@@ -29,7 +39,6 @@ Shader "FAShaders/Water" {
 
 		#pragma surface surf Lambert vertex:vert alpha noambient 
 			#pragma exclude_renderers gles
-			#pragma multi_compile ___ UNITY_HDR_ON
 
 
 		//************ FA Water Params
@@ -66,8 +75,6 @@ Shader "FAShaders/Water" {
 		half _GridScale;
 		int _Area;
 		half4 _AreaRect;
-		
-		sampler2D _WaterGrabTexture;
 
 
 		struct Input {
@@ -238,8 +245,10 @@ Shader "FAShaders/Water" {
 
 			// add in the sun reflection
 			float3 sunReflection = calculateSunReflection(R, viewVector, N);
-			// we can control this value to have terrain cast a shadow on the water surface
-			sunReflection *= waterTexture.r;
+			// there appears to be a problem with the editor sometimes falsely reading
+			// the red channel of the waterTexture as 0 even if it isn't. For now we
+			// disable the behviour
+		//  sunReflection *= waterTexture.r;
 			water += sunReflection;
 
 			// Lerp in the wave crests

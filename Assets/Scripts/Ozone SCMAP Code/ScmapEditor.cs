@@ -84,8 +84,6 @@ public partial class ScmapEditor : MonoBehaviour
 	{
 		Vector3 SunDIr = new Vector3(-map.SunDirection.x, -map.SunDirection.y, map.SunDirection.z);
 		Sun.transform.rotation = Quaternion.LookRotation(SunDIr);
-		Sun.color = new Color(map.SunColor.x, map.SunColor.y, map.SunColor.z, 1);
-		Sun.intensity = map.LightingMultiplier * EditMap.LightingInfo.SunMultipiler;
 
 		/*BloomModel.Settings Bs = PostProcessing.bloom.settings;
 		Bs.bloom.intensity = map.Bloom * 10;
@@ -149,7 +147,7 @@ public partial class ScmapEditor : MonoBehaviour
 
 
 		TerrainMaterial.SetTexture("_TerrainNormal", map.UncompressedNormalmapTex);
-		Shader.SetGlobalTexture("UtilitySamplerC", map.UncompressedWatermapTex);
+		WaterMaterial.SetTexture("UtilitySamplerC", map.UncompressedWatermapTex);
 		Shader.SetGlobalFloat("_WaterScaleX", xRes);
 		Shader.SetGlobalFloat("_WaterScaleZ", xRes);
 
@@ -388,19 +386,13 @@ public partial class ScmapEditor : MonoBehaviour
 		WaterLevel.gameObject.SetActive(map.Water.HasWater);
 		WaterLevel.transform.position = Vector3.up * (map.Water.Elevation / 10.0f);
 
-		WaterMaterial.SetColor("waterColor", new Color(map.Water.SurfaceColor.x * 0.5f, map.Water.SurfaceColor.y * 0.5f, map.Water.SurfaceColor.z * 0.5f, 1));
-		WaterMaterial.SetColor("sunColor", new Color(map.Water.SunColor.x * 0.5f, map.Water.SunColor.y * 0.5f, map.Water.SunColor.z * 0.5f, 1));
-
-		Shader.SetGlobalVector("waterLerp", map.Water.ColorLerp);
-		Shader.SetGlobalVector("WaterSunDirection", new Vector3(map.Water.SunDirection.x, map.Water.SunDirection.y, -map.Water.SunDirection.z));
-		Shader.SetGlobalFloat("SunShininess", map.Water.SunShininess);
-		Shader.SetGlobalFloat("sunReflectionAmount", map.Water.SunReflection);
-		Shader.SetGlobalFloat("unitreflectionAmount", map.Water.UnitReflection);
-		Shader.SetGlobalFloat("skyreflectionAmount", map.Water.SkyReflection);
-		Shader.SetGlobalFloat("refractionScale", map.Water.RefractionScale);
-
-		Shader.SetGlobalFloat("fresnelPower", map.Water.FresnelPower);
-		Shader.SetGlobalFloat("fresnelBias", map.Water.FresnelBias);
+		WaterMaterial.SetVector("waterColor", map.Water.SurfaceColor);
+		WaterMaterial.SetVector("SunColor", map.Water.SunColor);
+        WaterMaterial.SetVector("waterLerp", map.Water.ColorLerp);
+		WaterMaterial.SetVector("SunDirection", map.Water.SunDirection);
+		WaterMaterial.SetFloat("SunShininess", map.Water.SunShininess);
+		WaterMaterial.SetFloat("skyreflectionAmount", map.Water.SkyReflection);
+        WaterMaterial.SetFloat("refractionScale", map.Water.RefractionScale);
 
 		/*
 		for (int w = 0; w < map.WaveGenerators.Count; w++)
@@ -408,8 +400,6 @@ public partial class ScmapEditor : MonoBehaviour
 			map.WaveGenerators[w].Position.y = map.Water.Elevation;
 		}
 		*/
-
-		//Shader.SetGlobalVector("waterLerp", map.Water.WaveTextures);
 
 		Shader.SetGlobalFloat("WaterElevation", map.Water.Elevation / 10.0f);
 		//TerrainMaterial.SetFloat("_DepthLevel", map.Water.ElevationDeep / 10.0f);
@@ -449,11 +439,11 @@ public partial class ScmapEditor : MonoBehaviour
 		WaterNormal.anisoLevel = WaterAnisoLevel;
 		WaterMaterial.SetTexture("NormalSampler3", WaterNormal);
 
-		Shader.SetGlobalVector("normal1Movement", map.Water.WaveTextures[0].NormalMovement);
-		Shader.SetGlobalVector("normal2Movement", map.Water.WaveTextures[1].NormalMovement);
-		Shader.SetGlobalVector("normal3Movement", map.Water.WaveTextures[2].NormalMovement);
-		Shader.SetGlobalVector("normal4Movement", map.Water.WaveTextures[3].NormalMovement);
-		Shader.SetGlobalVector("normalRepeatRate", new Vector4(map.Water.WaveTextures[0].NormalRepeat, map.Water.WaveTextures[1].NormalRepeat, map.Water.WaveTextures[2].NormalRepeat, map.Water.WaveTextures[3].NormalRepeat));
+		WaterMaterial.SetVector("normal1Movement", map.Water.WaveTextures[0].NormalMovement);
+		WaterMaterial.SetVector("normal2Movement", map.Water.WaveTextures[1].NormalMovement);
+		WaterMaterial.SetVector("normal3Movement", map.Water.WaveTextures[2].NormalMovement);
+		WaterMaterial.SetVector("normal4Movement", map.Water.WaveTextures[3].NormalMovement);
+        WaterMaterial.SetVector("normalRepeatRate", new Vector4(map.Water.WaveTextures[0].NormalRepeat, map.Water.WaveTextures[1].NormalRepeat, map.Water.WaveTextures[2].NormalRepeat, map.Water.WaveTextures[3].NormalRepeat));
 	}
 
 #endregion
