@@ -256,6 +256,14 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _StratumAlbedoArray:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _StratumNormalArray:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _TerrainNormal:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -310,7 +318,7 @@ Material:
     - Stratum6NormalTile: 128
     - Stratum7AlbedoTile: 128
     - Stratum7NormalTile: 128
-    - TerrainScale: 0
+    - TerrainScale: 0.001953125
     - UpperAlbedoTile: 4
     - UpperNormalTile: 1
     - WaterElevation: 0
