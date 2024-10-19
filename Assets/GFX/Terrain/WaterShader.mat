@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: WaterShader
-  m_Shader: {fileID: 4800000, guid: a4a5e3f2343cea345a332945c7bba4e7, type: 3}
+  m_Shader: {fileID: 4800000, guid: a59552e3ebc3e8348ab926a061258b7e, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -16,7 +16,7 @@ Material:
   m_LightmapFlags: 5
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 3000
+  m_CustomRenderQueue: -1
   stringTagMap: {}
   disabledShaderPasses: []
   m_LockedProperties: 
@@ -52,6 +52,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - SkySampler:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - UtilitySamplerC:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -105,6 +109,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - SunShininess: 50
     - _BumpScale: 1
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
@@ -121,9 +126,19 @@ Material:
     - _WaterScaleX: 1024
     - _WaterScaleZ: 1024
     - _ZWrite: 1
+    - refractionScale: 0.375
+    - skyreflectionAmount: 1.5
     m_Colors:
+    - SunColor: {r: 0.81274265, g: 0.47409984, b: 0.33864275, a: 0}
+    - SunDirection: {r: 0.09954818, g: -0.9626309, b: 0.2518569, a: 0}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - normal1Movement: {r: 0.5, g: -0.95, b: 0, a: 0}
+    - normal2Movement: {r: 0.05, g: -0.095, b: 0, a: 0}
+    - normal3Movement: {r: 0.01, g: 0.03, b: 0, a: 0}
+    - normal4Movement: {r: 0.0005, g: 0.0009, b: 0, a: 0}
+    - normalRepeatRate: {r: 0.0009, g: 0.009, b: 0.05, a: 0.5}
     - sunColor: {r: 0.40637133, g: 0.23704992, b: 0.16932137, a: 1}
-    - waterColor: {r: 0, g: 0.35, b: 0.75, a: 1}
+    - waterColor: {r: 0, g: 0.7, b: 1.5, a: 0}
+    - waterLerp: {r: 0.064, g: 0.119, b: 0, a: 0}
   m_BuildTextureStacks: []
