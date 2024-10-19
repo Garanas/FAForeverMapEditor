@@ -109,7 +109,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - SunShininess: 50
+    - SunShininess: 78.9
     - _BumpScale: 1
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
@@ -126,18 +126,18 @@ Material:
     - _WaterScaleX: 1024
     - _WaterScaleZ: 1024
     - _ZWrite: 1
-    - refractionScale: 0.375
-    - skyreflectionAmount: 1.5
+    - refractionScale: 0.38000003
+    - skyreflectionAmount: 0.67800003
     m_Colors:
-    - SunColor: {r: 0.81274265, g: 0.47409984, b: 0.33864275, a: 0}
+    - SunColor: {r: 0.52, g: 0.47, b: 0.35, a: 0}
     - SunDirection: {r: 0.09954818, g: -0.9626309, b: 0.2518569, a: 0}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - normal1Movement: {r: 0.5, g: -0.95, b: 0, a: 0}
-    - normal2Movement: {r: 0.05, g: -0.095, b: 0, a: 0}
-    - normal3Movement: {r: 0.01, g: 0.03, b: 0, a: 0}
-    - normal4Movement: {r: 0.0005, g: 0.0009, b: 0, a: 0}
-    - normalRepeatRate: {r: 0.0009, g: 0.009, b: 0.05, a: 0.5}
+    - normal1Movement: {r: -0, g: 0.01, b: 0, a: 0}
+    - normal2Movement: {r: -0.086602546, g: 0.049999997, b: 0, a: 0}
+    - normal3Movement: {r: 0.001307336, g: 0.014942921, b: 0, a: 0}
+    - normal4Movement: {r: 0.0049497476, g: 0.0049497476, b: 0, a: 0}
+    - normalRepeatRate: {r: 0.08, g: 0.009, b: 0.06, a: 0.5}
     - sunColor: {r: 0.40637133, g: 0.23704992, b: 0.16932137, a: 1}
     - waterColor: {r: 0, g: 0.7, b: 1.5, a: 0}
     - waterLerp: {r: 0.064, g: 0.119, b: 0, a: 0}

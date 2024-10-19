@@ -300,26 +300,26 @@ Material:
     - _UseSlopeTex: 0
     m_Floats:
     - LightingMultiplier: 1
-    - LowerAlbedoTile: 5.375328
-    - LowerNormalTile: 37.236362
-    - Stratum0AlbedoTile: 4.5919285
-    - Stratum0NormalTile: 4.404301
-    - Stratum1AlbedoTile: 70.62069
-    - Stratum1NormalTile: 68.26667
-    - Stratum2AlbedoTile: 13.837838
-    - Stratum2NormalTile: 9.846154
-    - Stratum3AlbedoTile: 12.880503
-    - Stratum3NormalTile: 31.507692
-    - Stratum4AlbedoTile: 128
-    - Stratum4NormalTile: 128
-    - Stratum5AlbedoTile: 128
-    - Stratum5NormalTile: 128
-    - Stratum6AlbedoTile: 128
-    - Stratum6NormalTile: 128
-    - Stratum7AlbedoTile: 128
-    - Stratum7NormalTile: 128
-    - TerrainScale: 0.001953125
-    - UpperAlbedoTile: 4
+    - LowerAlbedoTile: 256
+    - LowerNormalTile: 117.02857
+    - Stratum0AlbedoTile: 256
+    - Stratum0NormalTile: 256
+    - Stratum1AlbedoTile: 292.57144
+    - Stratum1NormalTile: 89.04348
+    - Stratum2AlbedoTile: 60.952385
+    - Stratum2NormalTile: 512
+    - Stratum3AlbedoTile: 170.66667
+    - Stratum3NormalTile: 256
+    - Stratum4AlbedoTile: 256
+    - Stratum4NormalTile: 256
+    - Stratum5AlbedoTile: 256
+    - Stratum5NormalTile: 256
+    - Stratum6AlbedoTile: 256
+    - Stratum6NormalTile: 256
+    - Stratum7AlbedoTile: 256
+    - Stratum7NormalTile: 256
+    - TerrainScale: 0.0009765625
+    - UpperAlbedoTile: 8
     - UpperNormalTile: 1
     - WaterElevation: 0
     - _AbyssLevel: 0.25
