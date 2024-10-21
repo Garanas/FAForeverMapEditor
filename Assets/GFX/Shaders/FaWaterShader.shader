@@ -1,4 +1,4 @@
-Shader "FAShaders/Water" {
+﻿Shader "FAShaders/Water" {
 	Properties {
 		waterColor  ("waterColor", Color) = (0, 0, 0, 0)
 		SunColor  ("Sun Color", Color) = (0, 0, 0, 0)
