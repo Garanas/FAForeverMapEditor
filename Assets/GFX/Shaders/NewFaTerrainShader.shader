@@ -9,14 +9,6 @@ Shader "FAShaders/Terrain"
         // However, to be as close to the FA shader code as possible, we ignore this here.
         // We use underscores only for variables that are introduced by the editor.
 
-        ShadowFillColor ("Shadow Fill Color", Color) = (0.0, 0.0, 0.0, 1)
-        LightingMultiplier ("Lighting Multiplier", Float) = 1
-        SunDirection ("Sun Direction", Vector) = (0.0, 1.0, 0.0, 1)
-        SunAmbience ("Ambient Light Color", Color) = (0.0, 0.0, 0.0, 1)
-        SunColor ("Sun Color", Color) = (0.0, 0.0, 0.0, 1)
-        SpecularColor ("Specular Color", Color) = (0.0, 0.0, 0.0, 1)
-        WaterElevation ("Water Elevation", Float) = 0
-
         LowerAlbedoTile ("Lower Albedo Tile", Float) = 1
         LowerNormalTile ("Lower Normal Tile", Float) = 1
         Stratum0AlbedoTile ("Stratum 0 Albedo Tile", Float) = 1
