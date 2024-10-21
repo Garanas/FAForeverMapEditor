@@ -245,18 +245,16 @@
 
 
 			if(_Area > 0){
-				fixed3 BlackEmit = -1;
-				fixed3 Albedo = 0;
 				if(inV.worldPos.x < _AreaRect.x){
 					returnPixels.rgb = 0;
 				}
 				else if(inV.worldPos.x > _AreaRect.z){
 					returnPixels.rgb = 0;
 				}
-				else if(inV.worldPos.z < _AreaRect.y - _GridScale){
+				else if(inV.worldPos.z < _AreaRect.y - _GridScale * 2){
 					returnPixels.rgb = 0;
 				}
-				else if(inV.worldPos.z > _AreaRect.w - _GridScale){
+				else if(inV.worldPos.z > _AreaRect.w - _GridScale * 2){
 					returnPixels.rgb = 0;
 				}
 			}
