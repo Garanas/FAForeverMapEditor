@@ -11,27 +11,27 @@ public class EnvPaths : MonoBehaviour {
 	//static RegistryKey regKey = Registry. .OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Uninstall");
 
 
-	const string InstalationPath = "InstalationPath";
-	const string InstalationGamedata = "gamedata/";
-	const string InstalationMods = "mods/";
+	const string InstallationPath = "InstallationPath";
+	const string InstallationGamedata = "gamedata/";
+	const string InstallationMods = "mods/";
 	const string MapsPath = "MapsPath";
 	const string BackupPath = "BackupPath";
 
-	public static string GetInstalationPath() {
-		return PlayerPrefs.GetString(InstalationPath, EnvPaths.DefaultGamedataPath);
+	public static string GetInstallationPath() {
+		return PlayerPrefs.GetString(InstallationPath, EnvPaths.DefaultGamedataPath);
 	}
 
-	public static void SetInstalationPath(string value) {
+	public static void SetInstallationPath(string value) {
 		value = value.Replace("\\", "/");
 		if (value[value.Length - 1].ToString() != "/") value += "/";
 		if (value[0].ToString() == "/") value = value.Remove(0, 1);
 
-		if (value.ToLower().EndsWith(InstalationGamedata))
+		if (value.ToLower().EndsWith(InstallationGamedata))
 		{
-			value = value.Remove(value.Length - InstalationGamedata.Length);
+			value = value.Remove(value.Length - InstallationGamedata.Length);
 		}
 
-		PlayerPrefs.SetString(InstalationPath, value);
+		PlayerPrefs.SetString(InstallationPath, value);
 
 		if (!System.IO.Directory.Exists(value))
 		{
@@ -72,7 +72,7 @@ public class EnvPaths : MonoBehaviour {
 	public static string GamedataPath{
 		get
 		{
-			return GetInstalationPath() + InstalationGamedata;
+			return GetInstallationPath() + InstallationGamedata;
 		}
 	}
 
@@ -80,7 +80,7 @@ public class EnvPaths : MonoBehaviour {
 	{
 		get
 		{
-			return GetInstalationPath() + InstalationMods;
+			return GetInstallationPath() + InstallationMods;
 		}
 	}
 

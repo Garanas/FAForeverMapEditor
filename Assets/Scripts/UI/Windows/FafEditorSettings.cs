@@ -27,7 +27,7 @@ public class FafEditorSettings : MonoBehaviour
 
 	void OnEnable()
 	{
-		PathField.text = EnvPaths.GetInstalationPath();
+		PathField.text = EnvPaths.GetInstallationPath();
 		MapsPathField.text = EnvPaths.GetMapsPath();
 		BackupPathField.text = EnvPaths.GetBackupPath();
 
@@ -66,7 +66,7 @@ public class FafEditorSettings : MonoBehaviour
 		}
 		else
 		{
-			EnvPaths.SetInstalationPath(PathField.text);
+			EnvPaths.SetInstallationPath(PathField.text);
 		}
 
 		if (string.IsNullOrEmpty(MapsPathField.text))
