@@ -221,6 +221,7 @@ half4 CalculateLight (unity_v2f_deferred i)
     worldNormal = worldNormal * 2 - 1;
     // The game is using a different coordinate system, so we need to correct for that
     worldNormal.z = worldNormal.z * -1;
+    eyeVec.z = eyeVec.z * -1;
 
 	float4 color;
 
