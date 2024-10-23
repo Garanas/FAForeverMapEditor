@@ -10,6 +10,7 @@ public class FafEditorSettings : MonoBehaviour
 {
 
 	public InputField PathField;
+	public InputField FafPathField;
 	public InputField MapsPathField;
 	public InputField BackupPathField;
 	public Slider HistorySlider;
@@ -28,6 +29,7 @@ public class FafEditorSettings : MonoBehaviour
 	void OnEnable()
 	{
 		PathField.text = EnvPaths.GetInstallationPath();
+		FafPathField.text = EnvPaths.GetFafDataPath();
 		MapsPathField.text = EnvPaths.GetMapsPath();
 		BackupPathField.text = EnvPaths.GetBackupPath();
 
@@ -69,7 +71,16 @@ public class FafEditorSettings : MonoBehaviour
 			EnvPaths.SetInstallationPath(PathField.text);
 		}
 
-		if (string.IsNullOrEmpty(MapsPathField.text))
+        if (string.IsNullOrEmpty(FafPathField.text))
+        {
+            GenericInfoPopup.ShowInfo("FAF data path can't be empty!");
+        }
+        else
+        {
+            EnvPaths.SetFafDataPath(FafPathField.text);
+        }
+
+        if (string.IsNullOrEmpty(MapsPathField.text))
 		{
 			GenericInfoPopup.ShowInfo("Maps folder path can't be empty!");
 		}
@@ -124,9 +135,20 @@ public class FafEditorSettings : MonoBehaviour
 		{
 			PathField.text = paths[0];
 		}
-	}
+    }
 
-	public void BrowseMapPath()
+    public void BrowseFafDataPath()
+    {
+
+        var paths = StandaloneFileBrowser.OpenFolderPanel("Select Forged Alliance Forever data path", EnvPaths.GetFafDataPath(), false);
+
+        if (paths.Length > 0 && !string.IsNullOrEmpty(paths[0]))
+        {
+            FafPathField.text = paths[0];
+        }
+    }
+
+    public void BrowseMapPath()
 	{
 
 		var paths = StandaloneFileBrowser.OpenFolderPanel("Select 'Maps' folder.", EnvPaths.GetMapsPath(), false);
@@ -152,10 +174,14 @@ public class FafEditorSettings : MonoBehaviour
 	{
 		EnvPaths.GenerateGamedataPath();
 		PathField.text = EnvPaths.DefaultGamedataPath;
-
 	}
+    public void ResetFafData()
+    {
+        EnvPaths.GenerateFafDataPath();
+        FafPathField.text = EnvPaths.DefaultFafDataPath;
+    }
 
-	public void ResetMap()
+    public void ResetMap()
 	{
 		EnvPaths.GenerateMapPath();
 		MapsPathField.text = EnvPaths.DefaultMapPath;
