@@ -68,6 +68,7 @@
 		half _GridScale;
 		int _Area;
 		half4 _AreaRect;
+		uniform int _ShaderID;
 
 
 		struct Input {
@@ -142,8 +143,12 @@
 
 		float3 calculateSunReflection(float3 R, float3 v, float3 n)
 		{
-			// for unknown reasons the game seems to silently double the SunColor
-			SunColor *= 2;
+			// for unknown reasons the game seems to mess with the SunColor, so we also need to correct
+			if (_ShaderID == 0) {
+				SunColor *= 2;
+			} else {
+				SunColor *= 0.75;
+			}
 
 			float3 color;
 			// Legacy fallback for the old behaviour, so we don't change all maps accidentally.
@@ -175,7 +180,7 @@
 		   	ViewportScaleOffset = float4(1, 1, 0, 0);
 			waveCrestColor = float3(1,1,1);
 			waveCrestThreshold = 1;
-	    
+
 			// calculate the depth of water at this pixel
 			float4 waterTexture = tex2D( UtilitySamplerC, inV.mTexUV );
 			float waterDepth =  waterTexture.g;
