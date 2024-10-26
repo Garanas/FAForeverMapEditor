@@ -19,8 +19,6 @@
 		NormalSampler2 ("NormalSampler2", 2D) = "white" {}
 		NormalSampler3 ("NormalSampler3", 2D) = "white" {}
 		UtilitySamplerC ("water properties", 2D) = "white" {}
-
-		_GridScale ("Grid Scale", Range (0, 2048)) = 512
 	}
     SubShader {
     	Tags { "Queue"="Transparent+6" "RenderType"="Transparent" }
@@ -256,10 +254,10 @@
 				else if(inV.worldPos.x > _AreaRect.z){
 					returnPixels.rgb = 0;
 				}
-				else if(inV.worldPos.z < _AreaRect.y - _GridScale * 2){
+				else if(inV.worldPos.z < _AreaRect.y - _GridScale){
 					returnPixels.rgb = 0;
 				}
-				else if(inV.worldPos.z > _AreaRect.w - _GridScale * 2){
+				else if(inV.worldPos.z > _AreaRect.w - _GridScale){
 					returnPixels.rgb = 0;
 				}
 			}
