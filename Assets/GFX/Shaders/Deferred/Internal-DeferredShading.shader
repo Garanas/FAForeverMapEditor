@@ -46,6 +46,7 @@ uniform int _Area;
 uniform half4 _AreaRect;
 half _GridScale;
 uniform int _ShaderID;
+uniform int _Water;
 uniform half LightingMultiplier;
 uniform fixed4 SunColor;
 uniform fixed4 SunDirection;
@@ -233,11 +234,13 @@ half4 CalculateLight (unity_v2f_deferred i)
         color.rgb = PBR(wpos, eyeVec, albedo, worldNormal, roughness, mapShadow * atten);
     }
 
-    // Trigger for exponential water absorption
-    if (LightingMultiplier > 2.1) {
-        color.rgb = ApplyWaterColorExponentially(-eyeVec, waterDepth, color.rgb);
-    } else {
-        color.rgb = ApplyWaterColor(waterDepth, color.rgb);
+    if (_Water) {
+        // Trigger for exponential water absorption
+        if (LightingMultiplier > 2.1) {
+            color.rgb = ApplyWaterColorExponentially(-eyeVec, waterDepth, color.rgb);
+        } else {
+            color.rgb = ApplyWaterColor(waterDepth, color.rgb);
+        }
     }
 
     color.a = 1;
