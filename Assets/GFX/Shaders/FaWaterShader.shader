@@ -209,7 +209,7 @@
 
 			// get the correct coordinate for sampling refraction and reflection
 			float2 refractionPos = screenPos;
-			refractionPos -= sqrt(waterDepth) * refractionScale * N.xz * OneOverW;
+			refractionPos -= sqrt(waterDepth) * refractionScale * N.xz * OneOverW * 0.1;
 
 			float4 refractedPixels = tex2D(RefractionSampler, refractionPos);
 			// the editor doesn't have info about unit reflections, so we will skip these operations here
