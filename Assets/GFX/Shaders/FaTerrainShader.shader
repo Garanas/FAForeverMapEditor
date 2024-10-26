@@ -194,11 +194,30 @@
             }
 
             float3 TangentToWorldSpace(Input v, float3 tnormal) {
-                // transform normal from tangent to world space
                 float3 worldNormal;
-                worldNormal.x = dot(v.tspace0, tnormal);
-                worldNormal.y = dot(v.tspace1, tnormal);
-                worldNormal.z = dot(v.tspace2, tnormal);
+                if (UpperAlbedoTile < 1.0) {
+                    float3 normal;
+                    normal.xz = tex2D(UpperAlbedoSampler, TerrainScale * v.mTexWT.xy) * 2 - 1;
+                    normal.z = normal.z * -1;
+                    // reconstruct y component
+                    normal.y = sqrt(1 - dot(normal.xz, normal.xz));
+
+                    // when we read the terrain normals from a texture, we need to build our own TBN matrix
+                    float3 tangent = cross(normal, float3(0, 0, 1));
+                    float3 bitangent = cross(normal, tangent);
+                    float3 TBN0 = float3(tangent.x, bitangent.x, normal.x);
+                    float3 TBN1 = float3(tangent.y, bitangent.y, normal.y);
+                    float3 TBN2 = float3(tangent.z, bitangent.z, normal.z);
+
+                    worldNormal.x = dot(TBN0, tnormal);
+                    worldNormal.y = dot(TBN1, tnormal);
+                    worldNormal.z = dot(TBN2, tnormal);
+                } else {
+                    // transform normal from tangent to world space using our vertex shader data
+                    worldNormal.x = dot(v.tspace0, tnormal);
+                    worldNormal.y = dot(v.tspace1, tnormal);
+                    worldNormal.z = dot(v.tspace2, tnormal);
+                }
                 return worldNormal;
             }
 
