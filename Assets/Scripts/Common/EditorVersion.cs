@@ -9,7 +9,7 @@ using System;
 public class EditorVersion : MonoBehaviour
 {
 
-	public const string EditorBuildVersion = "v0.8";
+	public const string EditorBuildVersion = "v0.901";
 
 #if PRERELEASE
 	// Prerelease
