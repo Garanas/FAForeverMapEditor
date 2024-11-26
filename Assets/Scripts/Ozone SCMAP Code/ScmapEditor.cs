@@ -1104,6 +1104,8 @@ public partial class ScmapEditor : MonoBehaviour
 			MapLuaParser.Current.EditMenu.LightingMenu.Specular.gameObject.SetActive(false);
 			MapLuaParser.Current.EditMenu.LightingMenu.SpecularRed.gameObject.SetActive(true);
             MapLuaParser.Current.EditMenu.LightingMenu.SpecularRed.SetTitle("Texture Blending Blurriness");
+			Textures[9].AlbedoScale = 10000;
+			Textures[8].NormalScale = 10000;
         }
         else if (MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "Terrain351")
         {
@@ -1111,6 +1113,8 @@ public partial class ScmapEditor : MonoBehaviour
             MapLuaParser.Current.EditMenu.LightingMenu.Specular.gameObject.SetActive(false);
             MapLuaParser.Current.EditMenu.LightingMenu.SpecularRed.gameObject.SetActive(true);
             MapLuaParser.Current.EditMenu.LightingMenu.SpecularRed.SetTitle("Texture Blending Blurriness");
+            Textures[9].AlbedoScale = 10000;
+            Textures[8].NormalScale = 10000;
         }
         else
         {
