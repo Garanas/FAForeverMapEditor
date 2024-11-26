@@ -195,7 +195,7 @@
 
             float3 TangentToWorldSpace(Input v, float3 tnormal) {
                 float3 worldNormal;
-                if (UpperAlbedoTile < 1.0) {
+                if (UpperAlbedoTile < 1.0 && _HideStratum8 == 0) {
                     float3 normal;
                     normal.xz = tex2D(UpperAlbedoSampler, TerrainScale * v.mTexWT.xy) * 2 - 1;
                     normal.z = normal.z * -1;
@@ -710,8 +710,13 @@
                     float3 normal = TangentToWorldSpace(inV, Terrain301NormalsPS(inV, true).xyz);
                     o.wNormal = normalize(normal);
 
-                    o.WaterDepth = tex2D(UpperAlbedoSampler, position.xy).b;
-                    o.MapShadow = tex2D(UpperAlbedoSampler, position.xy).w;
+                    if (_HideStratum8 == 0) {
+                        o.WaterDepth = tex2D(UpperAlbedoSampler, position.xy).b;
+                        o.MapShadow = tex2D(UpperAlbedoSampler, position.xy).w;
+                    } else {
+                        o.WaterDepth = tex2D(UtilitySamplerC, position.xy).g;
+                        o.MapShadow = 1;
+                    }
                 }
                 else if (_ShaderID == 3)
                 {
@@ -722,8 +727,13 @@
                     float3 normal = TangentToWorldSpace(inV, Terrain301NormalsPS(inV, false).xyz);
                     o.wNormal = normalize(normal);
 
-                    o.WaterDepth = tex2D(UpperAlbedoSampler, position.xy).b;
-                    o.MapShadow = tex2D(UpperAlbedoSampler, position.xy).w;
+                    if (_HideStratum8 == 0) {
+                        o.WaterDepth = tex2D(UpperAlbedoSampler, position.xy).b;
+                        o.MapShadow = tex2D(UpperAlbedoSampler, position.xy).w;
+                    } else {
+                        o.WaterDepth = tex2D(UtilitySamplerC, position.xy).g;
+                        o.MapShadow = 1;
+                    }
                 }
                 else {
                     o.Albedo = float3(1, 0, 1);
