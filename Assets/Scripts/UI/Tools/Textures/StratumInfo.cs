@@ -49,7 +49,6 @@ namespace EditMap
 		public UiTextField Scatter;
 
 		public Toggle LinearBrush;
-        public UiTextField ShaderName;
 
         public LayerMask TerrainMask;
 		public List<Toggle> BrushToggles;
@@ -454,7 +453,7 @@ namespace EditMap
 
 		public void RefreshLayerUI()
 		{
-			bool allLayers = ShaderName.text != "TTerrain";
+			bool allLayers = MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text != "TTerrain";
 			for(int i = 0; i < StratumSettings.XpShaderLayers.Length; i++)
 			{
 				StratumSettings.XpShaderLayers[i].color = allLayers ? Color.white : DisabledLayerColor;
@@ -1429,7 +1428,7 @@ namespace EditMap
 			{
 
 				StratumTemplate NewTemplate = new StratumTemplate();
-				NewTemplate.ShaderName = ShaderName.text;
+				NewTemplate.ShaderName = MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text;
 				NewTemplate.Stratum0 = ScmapEditor.Current.Textures[0];
 				NewTemplate.Stratum1 = ScmapEditor.Current.Textures[1];
 				NewTemplate.Stratum2 = ScmapEditor.Current.Textures[2];
@@ -1465,7 +1464,7 @@ namespace EditMap
 				StratumTemplate NewTemplate = UnityEngine.JsonUtility.FromJson<StratumTemplate>(data);
 
 
-				ShaderName.SetValue(NewTemplate.ShaderName);
+                MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.SetValue(NewTemplate.ShaderName);
 				ScmapEditor.Current.Textures[0] = NewTemplate.Stratum0;
 				ScmapEditor.Current.Textures[1] = NewTemplate.Stratum1;
 				ScmapEditor.Current.Textures[2] = NewTemplate.Stratum2;

@@ -136,7 +136,7 @@ public partial class ScmapEditor : MonoBehaviour
 		EnvPaths.CurrentGamedataPath = EnvPaths.GamedataPath;
 
 		//Shader
-        MapLuaParser.Current.EditMenu.TexturesMenu.ShaderName.SetValue(map.TerrainShader);
+        MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.SetValue(map.TerrainShader);
         ToogleShader();
 	
 		// Set Variables
@@ -706,7 +706,7 @@ public partial class ScmapEditor : MonoBehaviour
 		//string MapPath = EnvPaths.GetMapsPath();
 		string path = MapLuaParser.MapRelativePath(MapLuaParser.Current.ScenarioLuaFile.Data.map);
 
-		map.TerrainShader = MapLuaParser.Current.EditMenu.TexturesMenu.ShaderName.text;
+		map.TerrainShader = MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text;
 
 		map.MinimapContourColor = new Color32(0, 0, 0, 255);
 		map.MinimapDeepWaterColor = new Color32(71, 140, 181, 255);
@@ -1085,19 +1085,19 @@ public partial class ScmapEditor : MonoBehaviour
 
 	public void ToogleShader()
 	{
-		if (MapLuaParser.Current.EditMenu.TexturesMenu.ShaderName.text == "TTerrain")
+		if (MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "TTerrain")
 		{
 			Shader.SetGlobalInt("_ShaderID", 0);
 		}
-		else if (MapLuaParser.Current.EditMenu.TexturesMenu.ShaderName.text == "TTerrainXP")
+		else if (MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "TTerrainXP")
 		{
 			Shader.SetGlobalInt("_ShaderID", 1);
 		}
-		else if (MapLuaParser.Current.EditMenu.TexturesMenu.ShaderName.text == "Terrain301")
+		else if (MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "Terrain301")
 		{
 			Shader.SetGlobalInt("_ShaderID", 2);
 		}
-        else if (MapLuaParser.Current.EditMenu.TexturesMenu.ShaderName.text == "Terrain351")
+        else if (MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "Terrain351")
         {
             Shader.SetGlobalInt("_ShaderID", 3);
         }
