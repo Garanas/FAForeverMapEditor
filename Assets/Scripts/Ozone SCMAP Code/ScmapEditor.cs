@@ -1098,7 +1098,7 @@ public partial class ScmapEditor : MonoBehaviour
             MapLuaParser.Current.EditMenu.LightingMenu.Specular.gameObject.SetActive(true);
             MapLuaParser.Current.EditMenu.LightingMenu.SpecularRed.gameObject.SetActive(false);
         }
-		else if (MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "Terrain301")
+		else if (MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "Terrain200")
 		{
 			Shader.SetGlobalInt("_ShaderID", 2);
 			MapLuaParser.Current.EditMenu.LightingMenu.Specular.gameObject.SetActive(false);
@@ -1107,7 +1107,7 @@ public partial class ScmapEditor : MonoBehaviour
 			Textures[9].AlbedoScale = 10000;
 			Textures[8].NormalScale = 10000;
         }
-        else if (MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "Terrain351")
+        else if (MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "Terrain250")
         {
             Shader.SetGlobalInt("_ShaderID", 3);
             MapLuaParser.Current.EditMenu.LightingMenu.Specular.gameObject.SetActive(false);
