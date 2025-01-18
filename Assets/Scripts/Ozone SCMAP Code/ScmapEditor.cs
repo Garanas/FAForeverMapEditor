@@ -1101,24 +1101,34 @@ public partial class ScmapEditor : MonoBehaviour
 		else if (MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "Terrain200")
 		{
 			Shader.SetGlobalInt("_ShaderID", 2);
-			MapLuaParser.Current.EditMenu.LightingMenu.Specular.gameObject.SetActive(false);
-			MapLuaParser.Current.EditMenu.LightingMenu.SpecularRed.gameObject.SetActive(true);
-            MapLuaParser.Current.EditMenu.LightingMenu.SpecularRed.SetTitle("Texture Blending Blurriness");
-			Textures[9].AlbedoScale = 10000;
-			Textures[8].NormalScale = 10000;
         }
         else if (MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "Terrain250")
         {
             Shader.SetGlobalInt("_ShaderID", 3);
+        }
+        else if (MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "Terrain200B")
+        {
+            Shader.SetGlobalInt("_ShaderID", 4);
+        }
+        else if (MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "Terrain250B")
+        {
+            Shader.SetGlobalInt("_ShaderID", 5);
+        }
+        else
+        {
+            Shader.SetGlobalInt("_ShaderID", -1);
+        }
+
+		if (MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "Terrain200" ||
+            MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "Terrain250" ||
+            MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "Terrain200B" ||
+            MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "Terrain250B")
+        {
             MapLuaParser.Current.EditMenu.LightingMenu.Specular.gameObject.SetActive(false);
             MapLuaParser.Current.EditMenu.LightingMenu.SpecularRed.gameObject.SetActive(true);
             MapLuaParser.Current.EditMenu.LightingMenu.SpecularRed.SetTitle("Texture Blending Blurriness");
             Textures[9].AlbedoScale = 10000;
             Textures[8].NormalScale = 10000;
-        }
-        else
-        {
-            Shader.SetGlobalInt("_ShaderID", -1);
         }
 	}
 #endregion

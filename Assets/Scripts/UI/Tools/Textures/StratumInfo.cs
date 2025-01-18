@@ -393,7 +393,9 @@ namespace EditMap
 			}
 
 			if (MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "Terrain200" ||
-                MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "Terrain250")
+                MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "Terrain250" ||
+                MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "Terrain200B" ||
+                MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "Terrain250B")
 			{
 				if (Selected == 9)
 				{
