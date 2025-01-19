@@ -51,8 +51,9 @@ namespace EditMap
 			Quaternion CheckRot = Scmap.Sun.transform.rotation;
 
 			float RaHold = CheckRot.eulerAngles.y;
-			if (RaHold > 180) RaHold -= 360;
-			if (RaHold < -180) RaHold += 360;
+			RaHold += 180;
+			if (RaHold > 360) RaHold -= 360;
+			if (RaHold < 0) RaHold += 360;
 			RaHold *= 10;
 			RaHold = (int)RaHold;
 			RaHold /= 10f;
@@ -171,7 +172,7 @@ namespace EditMap
 		{
 			if (Scmap.map == null) return;
 
-			Scmap.Sun.transform.rotation = Quaternion.Euler(new Vector3(DA.value, -360 + RA.value, 0));
+			Scmap.Sun.transform.rotation = Quaternion.Euler(new Vector3(DA.value, -180 + RA.value, 0));
 			Vector3 SunDir = Scmap.Sun.transform.rotation * Vector3.back;
 			SunDir.z *= -1;
 			Scmap.map.SunDirection = SunDir;
