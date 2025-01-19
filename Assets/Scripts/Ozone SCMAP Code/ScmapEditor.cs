@@ -1102,7 +1102,8 @@ public partial class ScmapEditor : MonoBehaviour
 		{
 			Shader.SetGlobalInt("_ShaderID", 2);
         }
-        else if (MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "Terrain250")
+        else if (MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "Terrain250" ||
+				 MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "Terrain301")
         {
             Shader.SetGlobalInt("_ShaderID", 3);
         }
@@ -1121,6 +1122,7 @@ public partial class ScmapEditor : MonoBehaviour
 
 		if (MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "Terrain200" ||
             MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "Terrain250" ||
+            MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "Terrain301" ||
             MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "Terrain200B" ||
             MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "Terrain250B")
         {
