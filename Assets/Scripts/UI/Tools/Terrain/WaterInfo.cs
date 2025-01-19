@@ -28,12 +28,7 @@ namespace EditMap
 		public UiColor WaterColor;
 		public UiColor SunColor;
 
-		public UiTextField SunStrength;
 		public UiTextField SunShininess;
-		public UiTextField SunReflection;
-
-		public UiTextField FresnelPower;
-		public UiTextField FresnelBias;
 
 		public UiTextField UnitReflection;
 		public UiTextField SkyReflection;
@@ -71,12 +66,7 @@ namespace EditMap
 			WaterColor.SetColorField(ScmapEditor.Current.map.Water.SurfaceColor.x, ScmapEditor.Current.map.Water.SurfaceColor.y, ScmapEditor.Current.map.Water.SurfaceColor.z); // WaterSettingsChanged
 			SunColor.SetColorField(ScmapEditor.Current.map.Water.SunColor.x, ScmapEditor.Current.map.Water.SunColor.y, ScmapEditor.Current.map.Water.SunColor.z); // WaterSettingsChanged
 
-			SunStrength.SetValue(ScmapEditor.Current.map.Water.SunStrength);
 			SunShininess.SetValue(ScmapEditor.Current.map.Water.SunShininess);
-			SunReflection.SetValue(ScmapEditor.Current.map.Water.SunReflection);
-
-			FresnelPower.SetValue(ScmapEditor.Current.map.Water.FresnelPower);
-			FresnelBias.SetValue(ScmapEditor.Current.map.Water.FresnelBias);
 
 			UnitReflection.SetValue(ScmapEditor.Current.map.Water.UnitReflection);
 			SkyReflection.SetValue(ScmapEditor.Current.map.Water.SkyReflection);
@@ -189,11 +179,7 @@ namespace EditMap
 				|| ScmapEditor.Current.map.Water.ColorLerp.y != ColorLerpYElevation.value
 				|| ScmapEditor.Current.map.Water.SurfaceColor != WaterColor.GetVectorValue()
 				|| ScmapEditor.Current.map.Water.SunColor != SunColor.GetVectorValue()
-				|| ScmapEditor.Current.map.Water.SunStrength != SunStrength.value
 				|| ScmapEditor.Current.map.Water.SunShininess != SunShininess.value
-				|| ScmapEditor.Current.map.Water.SunReflection != SunReflection.value
-				|| ScmapEditor.Current.map.Water.FresnelPower != FresnelPower.value
-				|| ScmapEditor.Current.map.Water.FresnelBias != FresnelBias.value
 				|| ScmapEditor.Current.map.Water.UnitReflection != UnitReflection.value
 				|| ScmapEditor.Current.map.Water.SkyReflection != SkyReflection.value
 				|| ScmapEditor.Current.map.Water.RefractionScale != RefractionScale.value
@@ -223,12 +209,7 @@ namespace EditMap
 			ScmapEditor.Current.map.Water.SurfaceColor = WaterColor.GetVectorValue();
 			ScmapEditor.Current.map.Water.SunColor = SunColor.GetVectorValue();
 
-			ScmapEditor.Current.map.Water.SunStrength = SunStrength.value;
 			ScmapEditor.Current.map.Water.SunShininess = SunShininess.value;
-			ScmapEditor.Current.map.Water.SunReflection = SunReflection.value;
-
-			ScmapEditor.Current.map.Water.FresnelPower = FresnelPower.value;
-			ScmapEditor.Current.map.Water.FresnelBias = FresnelBias.value;
 
 			ScmapEditor.Current.map.Water.UnitReflection = UnitReflection.value;
 			ScmapEditor.Current.map.Water.SkyReflection = SkyReflection.value;
