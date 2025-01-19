@@ -19,6 +19,7 @@ namespace EditMap
 		public UiTextField WaterElevation;
 		public UiTextField DepthElevation;
 		public UiTextField AbyssElevation;
+		public Toggle AdvancedWaterToggle;
 
 		public UiTextField ColorLerpXElevation;
 		public UiTextField ColorLerpYElevation;
@@ -48,6 +49,18 @@ namespace EditMap
 
 		private void OnDisable()
 		{
+		}
+
+		public void OnWaterTogglePressed()
+		{
+			if (AdvancedWaterToggle.isOn)
+			{
+				MapLuaParser.Current.EditMenu.LightingMenu.RecalculateLightSettings(2.2f);
+            } 
+			else
+			{
+                MapLuaParser.Current.EditMenu.LightingMenu.RecalculateLightSettings(1.8f);
+            }
 		}
 
 		public void ReloadValues(bool Undo = false)
@@ -175,10 +188,11 @@ namespace EditMap
 
             if (UseLightingSettings.isOn)
             {
-                SunColor.SetColorField(ScmapEditor.Current.map.SunColor.x * ScmapEditor.Current.map.LightingMultiplier, 
-									   ScmapEditor.Current.map.SunColor.y * ScmapEditor.Current.map.LightingMultiplier, 
-									   ScmapEditor.Current.map.SunColor.z * ScmapEditor.Current.map.LightingMultiplier);
-                SunDirection = ScmapEditor.Current.map.SunDirection;
+				Map map = ScmapEditor.Current.map;
+                SunColor.SetColorField(map.SunColor.x * (map.LightingMultiplier - map.ShadowFillColor.x),
+                                       map.SunColor.y * (map.LightingMultiplier - map.ShadowFillColor.y), 
+									   map.SunColor.z * (map.LightingMultiplier - map.ShadowFillColor.z));
+                SunDirection = map.SunDirection;
             } else {
                 SunDirection = new Vector3(0.09954818f, -0.9626309f, 0.2518569f);
             }

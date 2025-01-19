@@ -176,7 +176,13 @@ namespace EditMap
 			SunDir.z *= -1;
 			Scmap.map.SunDirection = SunDir;
 
-			Scmap.map.LightingMultiplier = LightMultipiler.value;
+            if (MapLuaParser.Current.EditMenu.WaterMenu.AdvancedWaterToggle.isOn)
+            {
+				// Don't allow changing the multiplier when we need it for the water settings
+                LightMultipiler.SetValue(Scmap.map.LightingMultiplier);
+            } else {
+				Scmap.map.LightingMultiplier = LightMultipiler.value;
+			}
 
 			Scmap.map.SunColor = LightColor.GetVectorValue();
 			Scmap.map.SunAmbience = AmbienceColor.GetVectorValue();
@@ -210,6 +216,30 @@ namespace EditMap
 
 		}
 
+		/* We transform the light values so that we set the shadowFill to
+		0 and the lightMultiplier to a given value, without changing the
+		visual appearance. Setting shadowFill to 0 makes it easier to
+		reason about the lighting, because now we have a physically
+		correct light setup.
+		A multiplier of 2.2 enables exponential water absorption. */
+        public void RecalculateLightSettings(float NewLightMultiplier)
+		{
+			Vector3 NewSunColor = new Vector3(
+				Scmap.map.SunColor.x * (Scmap.map.LightingMultiplier - Scmap.map.ShadowFillColor.x) / NewLightMultiplier,
+				Scmap.map.SunColor.y * (Scmap.map.LightingMultiplier - Scmap.map.ShadowFillColor.y) / NewLightMultiplier,
+                Scmap.map.SunColor.z * (Scmap.map.LightingMultiplier - Scmap.map.ShadowFillColor.z) / NewLightMultiplier);
+            Vector3 NewAmbienceColor = new Vector3(
+                (Scmap.map.SunAmbience.x * (Scmap.map.LightingMultiplier - Scmap.map.ShadowFillColor.x) + Scmap.map.ShadowFillColor.x) / NewLightMultiplier,
+                (Scmap.map.SunAmbience.y * (Scmap.map.LightingMultiplier - Scmap.map.ShadowFillColor.y) + Scmap.map.ShadowFillColor.y) / NewLightMultiplier,
+                (Scmap.map.SunAmbience.z * (Scmap.map.LightingMultiplier - Scmap.map.ShadowFillColor.z) + Scmap.map.ShadowFillColor.z) / NewLightMultiplier);
+
+            Scmap.map.LightingMultiplier = NewLightMultiplier;
+            Scmap.map.SunColor = NewSunColor;
+            Scmap.map.SunAmbience = NewAmbienceColor;
+            Scmap.map.ShadowFillColor = new Vector3(0, 0, 0);
+
+			LoadValues();
+        }
 
 		public void ResetSun()
 		{
