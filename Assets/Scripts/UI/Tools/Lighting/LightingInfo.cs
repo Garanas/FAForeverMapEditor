@@ -200,6 +200,11 @@ namespace EditMap
 
 			Scmap.map.Bloom = Bloom.value;
 
+			if (MapLuaParser.Current.EditMenu.WaterMenu.UseLightingSettings.isOn)
+			{
+				MapLuaParser.Current.EditMenu.WaterMenu.WaterSettingsChanged(false);
+            }
+
 			Scmap.UpdateLighting();
 			Scmap.Skybox.LoadSkybox();
 

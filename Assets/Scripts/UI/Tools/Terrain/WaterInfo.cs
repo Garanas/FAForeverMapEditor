@@ -1,10 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using Ozone.UI;
 using System.IO;
-using System.Runtime.InteropServices;
 using SFB;
 
 namespace EditMap
@@ -27,6 +24,8 @@ namespace EditMap
 		public UiTextField ColorLerpYElevation;
 		public UiColor WaterColor;
 		public UiColor SunColor;
+		public Toggle UseLightingSettings;
+		private Vector3 SunDirection;
 
 		public UiTextField SunShininess;
 
@@ -63,8 +62,8 @@ namespace EditMap
 			ColorLerpXElevation.SetValue(ScmapEditor.Current.map.Water.ColorLerp.x);
 			ColorLerpYElevation.SetValue(ScmapEditor.Current.map.Water.ColorLerp.y);
 
-			WaterColor.SetColorField(ScmapEditor.Current.map.Water.SurfaceColor.x, ScmapEditor.Current.map.Water.SurfaceColor.y, ScmapEditor.Current.map.Water.SurfaceColor.z); // WaterSettingsChanged
-			SunColor.SetColorField(ScmapEditor.Current.map.Water.SunColor.x, ScmapEditor.Current.map.Water.SunColor.y, ScmapEditor.Current.map.Water.SunColor.z); // WaterSettingsChanged
+			WaterColor.SetColorField(ScmapEditor.Current.map.Water.SurfaceColor.x, ScmapEditor.Current.map.Water.SurfaceColor.y, ScmapEditor.Current.map.Water.SurfaceColor.z);
+            SunColor.SetColorField(ScmapEditor.Current.map.Water.SunColor.x, ScmapEditor.Current.map.Water.SunColor.y, ScmapEditor.Current.map.Water.SunColor.z);
 
 			SunShininess.SetValue(ScmapEditor.Current.map.Water.SunShininess);
 
@@ -174,11 +173,21 @@ namespace EditMap
 			if (Loading)
 				return;
 
+            if (UseLightingSettings.isOn)
+            {
+                SunColor.SetColorField(ScmapEditor.Current.map.SunColor.x * ScmapEditor.Current.map.LightingMultiplier, 
+									   ScmapEditor.Current.map.SunColor.y * ScmapEditor.Current.map.LightingMultiplier, 
+									   ScmapEditor.Current.map.SunColor.z * ScmapEditor.Current.map.LightingMultiplier);
+                SunDirection = ScmapEditor.Current.map.SunDirection;
+            } else {
+                SunDirection = new Vector3(0.09954818f, -0.9626309f, 0.2518569f);
+            }
 
-			bool AnyChanged = ScmapEditor.Current.map.Water.ColorLerp.x != ColorLerpXElevation.value
+            bool AnyChanged = ScmapEditor.Current.map.Water.ColorLerp.x != ColorLerpXElevation.value
 				|| ScmapEditor.Current.map.Water.ColorLerp.y != ColorLerpYElevation.value
 				|| ScmapEditor.Current.map.Water.SurfaceColor != WaterColor.GetVectorValue()
 				|| ScmapEditor.Current.map.Water.SunColor != SunColor.GetVectorValue()
+				|| ScmapEditor.Current.map.Water.SunDirection != SunDirection
 				|| ScmapEditor.Current.map.Water.SunShininess != SunShininess.value
 				|| ScmapEditor.Current.map.Water.UnitReflection != UnitReflection.value
 				|| ScmapEditor.Current.map.Water.SkyReflection != SkyReflection.value
@@ -208,6 +217,7 @@ namespace EditMap
 
 			ScmapEditor.Current.map.Water.SurfaceColor = WaterColor.GetVectorValue();
 			ScmapEditor.Current.map.Water.SunColor = SunColor.GetVectorValue();
+			ScmapEditor.Current.map.Water.SunDirection = SunDirection;
 
 			ScmapEditor.Current.map.Water.SunShininess = SunShininess.value;
 
