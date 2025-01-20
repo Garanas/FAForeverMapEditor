@@ -242,22 +242,14 @@ namespace EditMap
 			LoadValues();
         }
 
-		public void ResetSun()
+		public void ResetLight()
 		{
 			BeginUpdateMenu();
 
-			RA.SetValue(-48);
+			RA.SetValue(312);
 			DA.SetValue(34);
 			LightMultipiler.SetValue(1.54f);
 			LightColor.SetColorField(new Color(1.38f, 1.29f, 1.14f, 1));
-
-			UpdateMenu();
-		}
-
-		public void ResetAmbient()
-		{
-			BeginUpdateMenu();
-
 			AmbienceColor.SetColorField(Color.black);
 			ShadowColor.SetColorField(new Color(0.54f, 0.54f, 0.7f));
 
