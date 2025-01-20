@@ -49,7 +49,6 @@ namespace EditMap
 		public UiTextField Scatter;
 
 		public Toggle LinearBrush;
-        public UiTextField ShaderName;
 
         public LayerMask TerrainMask;
 		public List<Toggle> BrushToggles;
@@ -68,8 +67,9 @@ namespace EditMap
 		public class StratumSettingsUi
 		{
 			[Header("Textures")]
+			// Stratum 0 and Stratum 9 are the lower and upper layer
 			public RawImage Stratum9_Albedo;
-			public RawImage Stratum9_Normal;
+			// Upper layer has no normal texture
 			public RawImage Stratum8_Albedo;
 			public RawImage Stratum8_Normal;
 			public RawImage Stratum7_Albedo;
@@ -90,7 +90,6 @@ namespace EditMap
 			public RawImage Stratum0_Normal;
 
 			[Header("Mask")]
-			public RawImage Stratum9_Mask;
 			public RawImage Stratum8_Mask;
 			public RawImage Stratum7_Mask;
 			public RawImage Stratum6_Mask;
@@ -99,7 +98,6 @@ namespace EditMap
 			public RawImage Stratum3_Mask;
 			public RawImage Stratum2_Mask;
 			public RawImage Stratum1_Mask;
-			public RawImage Stratum0_Mask;
 
 			[Header("Visibility")]
 			public Text Stratum9_Visible;
@@ -348,7 +346,6 @@ namespace EditMap
 			StratumSettings.Stratum8_Normal.texture = ScmapEditor.Current.Textures[8].Normal;
 
 			StratumSettings.Stratum9_Albedo.texture = ScmapEditor.Current.Textures[9].Albedo;
-			StratumSettings.Stratum9_Normal.texture = ScmapEditor.Current.Textures[9].Normal;
 
 
 			StratumSettings.Stratum1_Mask.texture = ScmapEditor.Current.map.TexturemapTex;
@@ -376,15 +373,55 @@ namespace EditMap
 			Stratum_Selections[Selected].SetActive(true);
 
 			Stratum_Albedo.texture = ScmapEditor.Current.Textures[Selected].Albedo;
-			Stratum_Normal.texture = ScmapEditor.Current.Textures[Selected].Normal;
-
 			Stratum_Albedo_Name.text = ScmapEditor.Current.Textures[Selected].AlbedoPath;
-			Stratum_Normal_Name.text = ScmapEditor.Current.Textures[Selected].NormalPath;
-
-
 			Stratum_Albedo_Input.SetValue(ScmapEditor.Current.Textures[Selected].AlbedoScale);
 
-			Stratum_Normal_Input.SetValue(ScmapEditor.Current.Textures[Selected].NormalScale);
+			if (Selected != 9)
+			{
+				Stratum_Normal.texture = ScmapEditor.Current.Textures[Selected].Normal;
+				Stratum_Normal_Name.text = ScmapEditor.Current.Textures[Selected].NormalPath;
+				Stratum_Normal_Input.SetValue(ScmapEditor.Current.Textures[Selected].NormalScale);
+                Stratum_Normal.gameObject.SetActive(true);
+                Stratum_Normal_Name.gameObject.SetActive(true);
+                Stratum_Normal_Input.gameObject.SetActive(true);
+            }
+			else
+			{
+				Stratum_Normal.gameObject.SetActive(false);
+				Stratum_Normal_Name.gameObject.SetActive(false);
+				Stratum_Normal_Input.gameObject.SetActive(false);
+			}
+
+			if (MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "Terrain200" ||
+                MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "Terrain250" ||
+                MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "Terrain301" ||
+                MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "Terrain200B" ||
+                MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "Terrain250B")
+			{
+				if (Selected == 9)
+				{
+                    Stratum_Albedo_Input.gameObject.SetActive(false);
+                }
+				else if (Selected == 8)
+				{
+                    Stratum_Albedo_Input.SetTitle("Macrotexture Scale");
+                    Stratum_Albedo_Input.gameObject.SetActive(true);
+                    Stratum_Normal_Input.gameObject.SetActive(false);
+                }
+				else
+				{
+					Stratum_Albedo_Input.SetTitle("Scale");
+					Stratum_Normal_Input.SetTitle("Secondary Blending Scale");
+					Stratum_Albedo_Input.gameObject.SetActive(true);
+                    Stratum_Normal_Input.gameObject.SetActive(true);
+                }
+            }
+			else
+			{
+                Stratum_Albedo_Input.SetTitle("Albedo Scale");
+                Stratum_Normal_Input.SetTitle("Normal Scale");
+                Stratum_Albedo_Input.gameObject.SetActive(true);
+            }
 			LoadingStratum = false;
 		}
 
@@ -454,7 +491,7 @@ namespace EditMap
 
 		public void RefreshLayerUI()
 		{
-			bool allLayers = ShaderName.text != "TTerrain";
+			bool allLayers = MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text != "TTerrain";
 			for(int i = 0; i < StratumSettings.XpShaderLayers.Length; i++)
 			{
 				StratumSettings.XpShaderLayers[i].color = allLayers ? Color.white : DisabledLayerColor;
@@ -1429,7 +1466,7 @@ namespace EditMap
 			{
 
 				StratumTemplate NewTemplate = new StratumTemplate();
-				NewTemplate.ShaderName = ShaderName.text;
+				NewTemplate.ShaderName = MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text;
 				NewTemplate.Stratum0 = ScmapEditor.Current.Textures[0];
 				NewTemplate.Stratum1 = ScmapEditor.Current.Textures[1];
 				NewTemplate.Stratum2 = ScmapEditor.Current.Textures[2];
@@ -1465,7 +1502,7 @@ namespace EditMap
 				StratumTemplate NewTemplate = UnityEngine.JsonUtility.FromJson<StratumTemplate>(data);
 
 
-				ShaderName.SetValue(NewTemplate.ShaderName);
+                MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.SetValue(NewTemplate.ShaderName);
 				ScmapEditor.Current.Textures[0] = NewTemplate.Stratum0;
 				ScmapEditor.Current.Textures[1] = NewTemplate.Stratum1;
 				ScmapEditor.Current.Textures[2] = NewTemplate.Stratum2;

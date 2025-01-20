@@ -11,7 +11,8 @@ namespace EditMap
 		public UiTextField Name;
 		public UiTextField Desc;
 		public UiTextField Version;
-		public Toggle[] ScriptToggles;
+        public UiTextField ShaderName;
+        public Toggle[] ScriptToggles;
 		public Toggle SaveAsSc;
 		public Toggle SaveAsFa;
 		

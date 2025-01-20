@@ -230,7 +230,7 @@ half4 CalculateLight (unity_v2f_deferred i)
         color.rgb = CalculateLighting(worldNormal, eyeVec, albedo, 1-alpha, atten);
     } else if (_ShaderID == 1) {
         color.rgb = CalculateXPLighting(worldNormal, eyeVec, float4(albedo, alpha), atten);
-    } else if (_ShaderID == 2 || _ShaderID == 3) {
+    } else if (_ShaderID == 2 || _ShaderID == 3 || _ShaderID == 4 || _ShaderID == 5) {
         color.rgb = PBR(wpos, eyeVec, albedo, worldNormal, roughness, mapShadow * atten);
     } else {
         color.rgb = albedo;

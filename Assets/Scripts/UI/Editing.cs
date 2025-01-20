@@ -19,6 +19,7 @@ namespace EditMap
 		public Transform HudElements;
 		public MapInfo MapInfoMenu;
 		public StratumInfo TexturesMenu;
+		public LightingInfo LightingMenu;
 
 		[Header("State")]
 		public bool MauseOnGameplay;

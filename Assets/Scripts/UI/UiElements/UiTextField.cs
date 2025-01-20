@@ -18,6 +18,7 @@ namespace Ozone.UI
 		[Header("UI")]
 		public InputField	InputFieldUi;
 		public Slider		SliderUi;
+		public Text		    Title;
 
 		[Header("Events")]
 		public UnityEvent OnBeginChange;
@@ -213,6 +214,11 @@ namespace Ozone.UI
 			else if (InputFieldUi.contentType == InputField.ContentType.DecimalNumber)
 				InputFieldUi.text = LastValue.ToString("F2").Replace(",", ".");
 
+		}
+
+		public void SetTitle(string title)
+		{
+			Title.text = title;
 		}
 
 		public void CharFilter(string value)

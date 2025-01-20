@@ -136,7 +136,7 @@ public partial class ScmapEditor : MonoBehaviour
 		EnvPaths.CurrentGamedataPath = EnvPaths.GamedataPath;
 
 		//Shader
-        MapLuaParser.Current.EditMenu.TexturesMenu.ShaderName.SetValue(map.TerrainShader);
+        MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.SetValue(map.TerrainShader);
         ToogleShader();
 	
 		// Set Variables
@@ -706,7 +706,7 @@ public partial class ScmapEditor : MonoBehaviour
 		//string MapPath = EnvPaths.GetMapsPath();
 		string path = MapLuaParser.MapRelativePath(MapLuaParser.Current.ScenarioLuaFile.Data.map);
 
-		map.TerrainShader = MapLuaParser.Current.EditMenu.TexturesMenu.ShaderName.text;
+		map.TerrainShader = MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text;
 
 		map.MinimapContourColor = new Color32(0, 0, 0, 255);
 		map.MinimapDeepWaterColor = new Color32(71, 140, 181, 255);
@@ -1085,25 +1085,52 @@ public partial class ScmapEditor : MonoBehaviour
 
 	public void ToogleShader()
 	{
-		if (MapLuaParser.Current.EditMenu.TexturesMenu.ShaderName.text == "TTerrain")
+		if (MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "TTerrain")
 		{
 			Shader.SetGlobalInt("_ShaderID", 0);
-		}
-		else if (MapLuaParser.Current.EditMenu.TexturesMenu.ShaderName.text == "TTerrainXP")
+            MapLuaParser.Current.EditMenu.LightingMenu.Specular.gameObject.SetActive(false);
+            MapLuaParser.Current.EditMenu.LightingMenu.SpecularRed.gameObject.SetActive(true);
+			MapLuaParser.Current.EditMenu.LightingMenu.SpecularRed.SetTitle("Specularity");
+        }
+		else if (MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "TTerrainXP")
 		{
 			Shader.SetGlobalInt("_ShaderID", 1);
-		}
-		else if (MapLuaParser.Current.EditMenu.TexturesMenu.ShaderName.text == "Terrain301")
+            MapLuaParser.Current.EditMenu.LightingMenu.Specular.gameObject.SetActive(true);
+            MapLuaParser.Current.EditMenu.LightingMenu.SpecularRed.gameObject.SetActive(false);
+        }
+		else if (MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "Terrain200")
 		{
 			Shader.SetGlobalInt("_ShaderID", 2);
-		}
-        else if (MapLuaParser.Current.EditMenu.TexturesMenu.ShaderName.text == "Terrain351")
+        }
+        else if (MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "Terrain250" ||
+				 MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "Terrain301")
         {
             Shader.SetGlobalInt("_ShaderID", 3);
+        }
+        else if (MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "Terrain200B")
+        {
+            Shader.SetGlobalInt("_ShaderID", 4);
+        }
+        else if (MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "Terrain250B")
+        {
+            Shader.SetGlobalInt("_ShaderID", 5);
         }
         else
         {
             Shader.SetGlobalInt("_ShaderID", -1);
+        }
+
+		if (MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "Terrain200" ||
+            MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "Terrain250" ||
+            MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "Terrain301" ||
+            MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "Terrain200B" ||
+            MapLuaParser.Current.EditMenu.MapInfoMenu.ShaderName.text == "Terrain250B")
+        {
+            MapLuaParser.Current.EditMenu.LightingMenu.Specular.gameObject.SetActive(false);
+            MapLuaParser.Current.EditMenu.LightingMenu.SpecularRed.gameObject.SetActive(true);
+            MapLuaParser.Current.EditMenu.LightingMenu.SpecularRed.SetTitle("Texture Blending Blurriness");
+            Textures[9].AlbedoScale = 10000;
+            Textures[8].NormalScale = 10000;
         }
 	}
 #endregion
